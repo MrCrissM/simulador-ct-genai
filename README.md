@@ -2,7 +2,7 @@
 
 Aplicación de un solo directorio para ensayar el examen ISTQB® Certified Tester – Testing with Generative AI.
 
-En la pantalla de inicio se elige el modo:
+En la pantalla de inicio se elige el modo. Antes de entrar, un cuadro pide confirmar: se puede cancelar y seguir en el inicio.
 
 - **Examen real.** 40 preguntas, sin comentarios mientras se responde. La nota y la corrección aparecen al entregar.
 - **Examen de prueba.** Al confirmar cada respuesta se muestra enseguida cuál es la correcta y por qué. La respuesta queda fija después de confirmarla.
@@ -12,6 +12,8 @@ Los dos modos arman un examen de 40 preguntas y 46 puntos, con el mismo reparto 
 Los formatos de pregunta siguen los del examen de muestra: una opción correcta entre cuatro, afirmaciones (i-v) con opciones que las combinan («i, ii y iv»), relacionar elementos (1-4 con A-D) y «elija DOS opciones» entre cinco.
 
 Durante el examen, la barra superior tiene dos botones. **Pausar** detiene el tiempo y guarda el examen en el navegador; desde la pantalla de inicio se puede continuar después, con el tiempo que quedaba, o descartarlo. **Terminar** cierra el examen en ese momento: se corrige lo respondido y el intento queda en el historial como incompleto.
+
+A la derecha de la página, el botón «Arriba» aparece al bajar y vuelve al comienzo. Sirve sobre todo en el repaso, cuando las cuarenta preguntas quedan muy abajo.
 
 Cada intento entregado queda en el historial de la pantalla de inicio con el examen completo. Con «Revisar» se vuelve a abrir: preguntas, respuestas dadas, respuestas correctas y, en cada opción, por qué es correcta o por qué no lo es. En el examen de prueba esa misma justificación aparece al confirmar la respuesta. En ambos casos, «Ver en el sílabo» resume en un párrafo la idea del objetivo, recuerda por qué vale la respuesta de esa pregunta y abre la página del programa de estudios oficial (CT-GenAI v1.0, español). En el inicio, «Sílabo completo para repaso» lista los capítulos y los objetivos, y «Términos para repasar» recoge las palabras clave con una definición breve. El texto del sílabo no se copia: sigue en el PDF del ISTQB. El banco tiene varias formulaciones originales por objetivo. Una tanda adicional plantea situaciones nuevas (otros oficios, otros datos) sobre las mismas habilidades del examen de muestra, sin reproducir sus enunciados. Al armar un examen nuevo, si el intento anterior usó una formulación y queda otra del mismo objetivo, se elige una distinta.
 

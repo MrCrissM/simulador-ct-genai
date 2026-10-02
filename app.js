@@ -328,6 +328,99 @@
     raiz.appendChild(nodo);
   }
 
+  /* Pide confirmación antes de armar el examen, para no entrar con un clic accidental. */
+  function pedirConfirmacionExamen(modo, minutos, alAceptar) {
+    if (document.querySelector(".modal-fondo")) return;
+    var prueba = modo === "prueba";
+    var titulo = prueba ? "¿Empezar el examen de prueba?" : "¿Empezar el examen real?";
+    var detalle = prueba
+      ? "Son 40 preguntas y 46 puntos, con " + minutos + " minutos. Al confirmar cada respuesta verás cuál es la correcta y por qué."
+      : "Son 40 preguntas y 46 puntos, con " + minutos + " minutos. No verás comentarios hasta que entregues.";
+    var pausado = leerPausado();
+    var aviso = pausado
+      ? "<p class='modal-aviso'>Tienes un examen en pausa. Si empiezas este, el pausado sigue guardado para continuarlo después.</p>"
+      : "";
+    var fondo = el(
+      "<div class='modal-fondo'>" +
+        "<div class='modal' role='dialog' aria-modal='true' aria-labelledby='modal-titulo'>" +
+          "<p class='kicker'>Antes de empezar</p>" +
+          "<h2 id='modal-titulo'>" + titulo + "</h2>" +
+          "<p>" + detalle + "</p>" +
+          aviso +
+          "<div class='acciones'>" +
+            "<button type='button' class='primario' id='modal-empezar'>Sí, empezar</button>" +
+            "<button type='button' id='modal-cancelar'>No, volver</button>" +
+          "</div>" +
+        "</div>" +
+      "</div>"
+    );
+    document.body.appendChild(fondo);
+    document.body.classList.add("modal-abierto");
+    var previo = document.activeElement;
+    var empezarBtn = fondo.querySelector("#modal-empezar");
+    var cancelarBtn = fondo.querySelector("#modal-cancelar");
+    var abiertoEn = Date.now();
+    cancelarBtn.focus();
+
+    function cerrar() {
+      if (!fondo.parentNode) return;
+      document.removeEventListener("keydown", onKey);
+      document.body.classList.remove("modal-abierto");
+      fondo.remove();
+      if (previo && previo.focus) {
+        try { previo.focus(); } catch (e) { /* el botón de origen ya no está en la página */ }
+      }
+    }
+
+    cancelarBtn.addEventListener("click", cerrar);
+    empezarBtn.addEventListener("click", function () {
+      if (Date.now() - abiertoEn < 350) return;
+      cerrar();
+      alAceptar();
+    });
+    fondo.addEventListener("click", function (ev) {
+      if (ev.target === fondo) cerrar();
+    });
+    function onKey(ev) {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        cerrar();
+        return;
+      }
+      if (ev.key !== "Tab") return;
+      var nodos = [empezarBtn, cancelarBtn];
+      var i = nodos.indexOf(document.activeElement);
+      if (ev.shiftKey) {
+        if (i <= 0) { ev.preventDefault(); nodos[nodos.length - 1].focus(); }
+      } else if (i === -1 || i === nodos.length - 1) {
+        ev.preventDefault();
+        nodos[0].focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+  }
+
+  function instalarIrArriba() {
+    if (document.getElementById("ir-arriba")) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "ir-arriba";
+    btn.className = "ir-arriba";
+    btn.setAttribute("aria-label", "Volver arriba");
+    btn.textContent = "Arriba";
+    btn.hidden = true;
+    btn.addEventListener("click", function () {
+      var suave = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      window.scrollTo({ top: 0, behavior: suave });
+    });
+    document.body.appendChild(btn);
+    function actualizar() {
+      btn.hidden = window.scrollY < 320;
+    }
+    window.addEventListener("scroll", actualizar, { passive: true });
+    actualizar();
+  }
+
   function pararReloj() {
     if (reloj) { clearInterval(reloj); reloj = null; }
   }
@@ -524,8 +617,9 @@
       return nodo.querySelector("#extra").checked ? 75 : 60;
     }
     function arrancarNuevo(modo) {
-      if (pausado && !window.confirm("Tienes un examen en pausa. Si empiezas otro, el pausado seguirá guardado para continuarlo después. ¿Empezar un examen nuevo?")) return;
-      empezar(minutosElegidos(), modo);
+      pedirConfirmacionExamen(modo, minutosElegidos(), function () {
+        empezar(minutosElegidos(), modo);
+      });
     }
     nodo.querySelector("#modo-real").addEventListener("click", function () { arrancarNuevo("real"); });
     nodo.querySelector("#modo-prueba").addEventListener("click", function () { arrancarNuevo("prueba"); });
@@ -900,7 +994,11 @@
       "</section>"
     );
     mostrar(nodo);
-    nodo.querySelector("#otro").addEventListener("click", function () { empezar(intento.minutos || 60, intento.modo); });
+    nodo.querySelector("#otro").addEventListener("click", function () {
+      pedirConfirmacionExamen(intento.modo, intento.minutos || 60, function () {
+        empezar(intento.minutos || 60, intento.modo);
+      });
+    });
     nodo.querySelector("#inicio").addEventListener("click", pantallaInicio);
     nodo.querySelector("#inicio-pie").addEventListener("click", pantallaInicio);
     window.scrollTo(0, 0);
@@ -923,6 +1021,7 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     window.BANCO.forEach(function (p, i) { p._id = p.lo + "#" + i; });
+    instalarIrArriba();
     if (!restaurar()) pantallaInicio();
   });
 
