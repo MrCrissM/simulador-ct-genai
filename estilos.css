@@ -149,6 +149,7 @@ details.silabo, details.silabo-completo {
 }
 details.silabo summary, details.silabo-completo summary { font-weight: 700; color: var(--azul); }
 details.silabo p, details.silabo-completo p { margin: 0.45rem 0; }
+.resumen-silabo { line-height: 1.5; }
 .enlace-silabo { color: var(--azul); font-weight: 650; }
 .indice-silabo { list-style: none; padding: 0; margin: 0.3rem 0 0.6rem; }
 .indice-silabo li { margin: 0.28rem 0; }

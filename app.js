@@ -333,15 +333,35 @@
     return "<a class='enlace-silabo' href='" + urlSilabo(pagina) + "' target='_blank' rel='noopener noreferrer'>" + escapar(texto) + "</a>";
   }
 
-  function htmlSilabo(lo, k) {
-    var tema = window.SILABO && window.SILABO.temas[lo];
+  function htmlSilabo(p) {
+    if (!p) return "";
+    var tema = window.SILABO && window.SILABO.temas[p.lo];
     if (!tema) return "";
+    var aplica = p.porque
+      ? "<p><strong>En esta pregunta. </strong>" + escapar(p.porque) + "</p>"
+      : "";
     return "<details class='silabo'>" +
       "<summary>Ver en el sílabo</summary>" +
-      "<p>Objetivo <strong>GenAI-" + escapar(lo) + "</strong>" + (k ? " · " + escapar(k) : "") +
-      " · " + escapar(tema[0]) + ".</p>" +
-      "<p>En el programa de estudios oficial, en español, este apartado está en la página " + tema[1] + ".</p>" +
-      "<p>" + enlaceSilabo(tema[1], "Abrir la página " + tema[1] + " del sílabo") + "</p>" +
+      "<p>Objetivo <strong>GenAI-" + escapar(p.lo) + "</strong>" + (p.k ? " · " + escapar(p.k) : "") +
+      " · " + escapar(tema.titulo) + ". Página " + tema.pagina + " del programa oficial.</p>" +
+      "<p class='resumen-silabo'>" + escapar(tema.resumen) + "</p>" +
+      aplica +
+      "<p>" + enlaceSilabo(tema.pagina, "Abrir la página " + tema.pagina + " del sílabo") + "</p>" +
+    "</details>";
+  }
+
+  function htmlTerminos() {
+    if (!window.SILABO || !window.SILABO.terminos) return "";
+    var bloques = window.SILABO.terminos.map(function (cap) {
+      var items = cap[1].map(function (t) {
+        return "<li><strong>" + escapar(t[0]) + ".</strong> " + escapar(t[1]) + "</li>";
+      }).join("");
+      return "<li class='grupo-silabo'><strong>Capítulo " + escapar(cap[0]) + ". " + escapar(cap[2] || "") + "</strong><ul>" + items + "</ul></li>";
+    }).join("");
+    return "<details class='silabo-completo'>" +
+      "<summary>Términos para repasar</summary>" +
+      "<p>Palabras que el examen puede pedir recordar. Cada definición es una guía breve para estudiar, escrita para este simulador.</p>" +
+      "<ul class='indice-silabo'>" + bloques + "</ul>" +
     "</details>";
   }
 
@@ -359,7 +379,7 @@
     var objetivos = Object.keys(porCap).sort().map(function (n) {
       var items = porCap[n].map(function (lo) {
         var tema = window.SILABO.temas[lo];
-        return "<li>" + enlaceSilabo(tema[1], "GenAI-" + lo + " · " + tema[0] + " · p. " + tema[1]) + "</li>";
+        return "<li>" + enlaceSilabo(tema.pagina, "GenAI-" + lo + " · " + tema.titulo + " · p. " + tema.pagina) + "</li>";
       }).join("");
       return "<li class='grupo-silabo'><strong>Capítulo " + n + "</strong><ul>" + items + "</ul></li>";
     }).join("");
@@ -439,6 +459,7 @@
           "</button>" +
         "</div>" +
         htmlIndiceSilabo() +
+        htmlTerminos() +
         "<h2>Intentos anteriores</h2>" +
         "<p class='nota-hist'>El historial se guarda en este navegador. Para verlo en el celular, la tablet o el computador, descárgalo y tráelo en el otro aparato. El archivo también incluye el examen en pausa, si hay uno.</p>" +
         "<div class='acciones'>" +
@@ -642,7 +663,7 @@
       ? "<p class='pista'>Elige la respuesta y pulsa Confirmar para ver cuál es la correcta y por qué. Después no podrás cambiarla.</p>"
       : "";
     var correccion = revelada ? htmlCorreccion(p, marca) : "";
-    var bloqueSilabo = revelada ? htmlSilabo(p.lo, p.k) : "";
+    var bloqueSilabo = revelada ? htmlSilabo(p) : "";
 
     var nodo = el(
       "<section class='examen'>" +
@@ -835,7 +856,7 @@
       return "<details" + (d.bien ? "" : " open") + ">" +
         "<summary><span class='pill " + (d.bien ? "ok" : "mal") + "'>" + (d.bien ? "Bien" : "Mal") + "</span> " +
         (i + 1) + ". GenAI-" + escapar(p.lo) + " · " + p.k + " · " + p.puntos + " pt · su respuesta: " + suyas + " · correcta: " + buenas + "</summary>" +
-        "<p>" + escapar(p.enunciado) + "</p>" + htmlLista(p) + "<ol class='repaso-ops'>" + ops + "</ol>" + cierre + htmlSilabo(p.lo, p.k) + "</details>";
+        "<p>" + escapar(p.enunciado) + "</p>" + htmlLista(p) + "<ol class='repaso-ops'>" + ops + "</ol>" + cierre + htmlSilabo(p) + "</details>";
     }).join("");
 
     var cierreTxt = porTiempo ? "el tiempo se agotó" : (intento.incompleto ? "terminado sin completar" : "entregado");

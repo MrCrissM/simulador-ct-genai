@@ -364,7 +364,7 @@
     /* 51 normas DOS. Correctas 1 y 3 */
     [
       "ISO/IEC 25010 es el modelo de calidad de producto del nivel fundamentos. El programa no la cita para el uso de IA generativa en la prueba.",
-      "ISO/IEC 23053:2022 trata calidad de datos, transparencia y tolerancia a fallos, y el programa la cita para este uso.",
+      "ISO/IEC 23053:2022 es el marco de sistemas de IA con aprendizaje automático. En la prueba, el programa lo usa para calidad de datos, transparencia y seguridad.",
       "ISO/IEC/IEEE 29119-2 cubre procesos de prueba, no el uso de IA generativa.",
       "ISO/IEC 42001:2023 fija requisitos para gestionar sistemas de IA en la organización, y el programa la cita junto con la 23053.",
       "ISO/IEC/IEEE 29119-3 cubre documentación de prueba, no el gobierno de la IA generativa."
@@ -665,6 +665,148 @@
       "Un certificado por cada modelo no es un aspecto clave de la estrategia.",
       "Acumular datos sin criterio de calidad no es lo que pide el programa.",
       "Las métricas del aprendizaje supervisado, copiadas tal cual, no miden las salidas de una tarea de prueba."
+    ],
+    /* 94 1.1.1 espectro. Correcta 3 */
+    [
+      "Las reglas ya escritas describen la IA simbólica, no la creación de mensajes nuevos.",
+      "Elegir características a mano es aprendizaje automático clásico.",
+      "Clasificar mensajes que ya existen, sin crear otros, no es IA generativa.",
+      "Inventar mensajes que el sistema no ha mostrado, parecidos a los reales, es crear datos nuevos: IA generativa."
+    ],
+    /* 95 1.1.4 multimodal. Correcta 1 */
+    [
+      "Un modelo solo de texto no interpreta la captura como imagen.",
+      "La entrada es una imagen más una petición en texto. Eso lo cubre un modelo multimodal de visión y lenguaje.",
+      "Las reglas simbólicas no ven la pantalla.",
+      "La captura no trae características ya elegidas para un modelo clásico."
+    ],
+    /* 96 1.2.1 DOS. Correctas 0 y 2 */
+    [
+      "Resumir un informe y marcar contradicciones es una capacidad de lenguaje aplicada a la prueba.",
+      "Cerrar un defecto sin lectura humana delega el juicio que el programa deja en la persona.",
+      "Proponer oráculos desde los criterios de aceptación es un encargo realista para el modelo.",
+      "El entrenamiento con internet no vuelve cierta la salida.",
+      "Ejecutar un parche en producción sin revisión no es una capacidad clave de apoyo a la prueba."
+    ],
+    /* 97 1.2.2 aplicación. Correcta 1 */
+    [
+      "La charla abierta es un chatbot, no un flujo de prueba cerrado.",
+      "Historia, criterio recuperado y plantilla fija describen una aplicación de prueba que usa el modelo dentro de un proceso.",
+      "Cambiar el nombre del chat no define un recorrido ni un formato.",
+      "Una hoja de cálculo sin modelo no es una aplicación impulsada por un modelo."
+    ],
+    /* 98 2.1.2 un ejemplo. Correcta 1 */
+    [
+      "Sin ejemplos no se muestra el caso aceptado, y aquí sí se muestra.",
+      "Mostrar un único caso para imitar su formato es la técnica de un ejemplo.",
+      "Pocos ejemplos usa varios casos. Uno solo no es esa colección.",
+      "El meta-prompting refina el prompt. No consiste en imitar ese caso Gherkin."
+    ],
+    /* 99 2.2.2 diseño. Correcta 1 */
+    [
+      "Un pedido vago no nombra criterios ni la dependencia del pago respecto del acceso.",
+      "Separar la generación por criterio y el orden por dependencias aplica el diseño con encadenamiento.",
+      "Solo datos límite no producen los casos ni su prioridad.",
+      "Ejecutar en producción no es diseñar ni implementar la prueba."
+    ],
+    /* 100 2.2.3 regresión. Correcta 0 */
+    [
+      "Localizar los guiones del descuento y proponer su actualización es el uso de IA generativa en la regresión.",
+      "Borrar la batería y generar otra aplicación no mantiene la regresión.",
+      "El correo de la release no revisa ni actualiza los guiones.",
+      "Descartar la regresión por el tamaño aparente del cambio no es una decisión del modelo."
+    ],
+    /* 101 2.2.4 monitorización. Correcta 0 */
+    [
+      "Resumir avance, desvíos y riesgos con los datos del ciclo es monitorizar y controlar.",
+      "Casos de una historia nueva pertenecen al diseño, no al control del ciclo.",
+      "Reescribir producción no es una tarea de monitorización de la prueba.",
+      "Definir una palabra sin los resultados del ciclo no controla nada."
+    ],
+    /* 102 2.2.5 elegir técnica. Correcta 1 */
+    [
+      "Sin ejemplos se ignora un formato que el equipo ya tiene en cuatro filas.",
+      "Mostrar esas filas es pocos ejemplos: fijan formato y contenido.",
+      "La tabla de decisiones no es un prompt de sistema, y el meta-prompting no es la técnica directa aquí.",
+      "Un paso por celda parte una transformación que se puede hacer de una vez con ejemplos."
+    ],
+    /* 103 2.3.2 afinar. Correcta 1 */
+    [
+      "Aceptar la primera salida no evalúa ni ajusta el prompt.",
+      "Ver qué faltó, cambiar la instrucción o los ejemplos y comparar es el ciclo de afinado.",
+      "Más temperatura aumenta el azar. No incorpora los límites de forma controlada.",
+      "Cambiar de tarea evita la revisión en lugar de hacerla."
+    ],
+    /* 104 3.1.2 sesgo. Correcta 1 */
+    [
+      "La regla de edad está en la especificación. Esa frase no inventa un campo.",
+      "Atribuir una cualidad a un grupo de países sin apoyo en la especificación es un sesgo.",
+      "No hay un fallo al calcular 18. La regla se escribió bien.",
+      "Esa frase no es una técnica para estabilizar las respuestas."
+    ],
+    /* 105 3.1.3 mitigar. Correcta 0 */
+    [
+      "Citar el fragmento y revisar lo que no cita obliga a la salida a apoyarse en la especificación.",
+      "Subir la temperatura no reduce las invenciones.",
+      "Quitar la especificación deja al modelo sin la fuente que debería respetar.",
+      "El tono profesional no demuestra que los campos existan."
+    ],
+    /* 106 3.1.4 no determinismo. Correcta 0 */
+    [
+      "Temperatura baja, semilla si existe y reglas de comprobación reducen y controlan la variación.",
+      "Subir la temperatura aumenta las diferencias entre corridas.",
+      "Borrar el prompt de sistema quita un ancla estable.",
+      "La prosa libre sin comparación no mitiga la variación."
+    ],
+    /* 107 3.4.1 DOS marcos. Correctas 0 y 1 */
+    [
+      "El Reglamento europeo de IA es el marco legal que el programa cita para clasificar usos según el riesgo.",
+      "El marco NIST es la referencia de gestión de riesgos de IA que el programa incluye junto a las normas ISO.",
+      "ISO/IEC/IEEE 29119-2 cubre procesos de prueba, no este marco de IA.",
+      "ISO/IEC 25010 es calidad de producto, no el gobierno de la IA generativa en la prueba.",
+      "El glosario de fundamentos no reemplaza esas referencias."
+    ],
+    /* 108 4.1.3 agente. Correcta 0 */
+    [
+      "El agente puede preparar los datos con un objetivo, y la aceptación humana se mantiene en el pago.",
+      "Tener un objetivo no autoriza a quitar la revisión donde el riesgo la pide.",
+      "Un agente de este tipo sí puede llamar herramientas. No se limita a charlar.",
+      "Desplegar sin registro elimina el control que el uso del agente debe conservar."
+    ],
+    /* 109 4.2.2 operaciones. Correcta 0 */
+    [
+      "Versiones, vigilancia de la calidad y control de cambios son operaciones del modelo en uso.",
+      "Elegir características a mano y no medir es propio de otro tipo de modelo, no de estas operaciones.",
+      "El log de entrenamiento no sustituye el informe de prueba.",
+      "Publicar el modelo sin acceso controlado va contra la gestión del cambio."
+    ],
+    /* 110 5.1.3 modelo pequeño. Correcta 1 */
+    [
+      "El modelo más grande en una nube pública saca los datos y no atiende el coste.",
+      "Un modelo pequeño interno puede cubrir una clasificación corta sin sacar los datos, si la calidad alcanza.",
+      "El tamaño sí cambia el coste y el lugar donde se procesan los datos.",
+      "Que la tarea sea corta no obliga a usar solo reglas simbólicas."
+    ],
+    /* 111 5.1.4 fases. Correcta 1 */
+    [
+      "Ese orden invierte las fases. El descubrimiento va primero.",
+      "Las tres fases son descubrimiento, inicio y definición del uso, y uso e iteración. Pueden avanzar en paralelo según el caso de uso.",
+      "Comprar un modelo y disolver el equipo no son las fases del programa.",
+      "Desplegar en todos los procesos el primer día se salta el descubrimiento y la definición del uso."
+    ],
+    /* 112 5.2.1 habilidad. Correcta 0 */
+    [
+      "Escribir prompts, revisar la salida y detectar alucinaciones y sesgos es la habilidad que el programa pide.",
+      "Memorizar el código del modelo no es necesario para probar con él.",
+      "Los criterios de prueba siguen haciendo falta. El modelo no los trae cerrados.",
+      "Más llamadas no sustituyen el trabajo en equipo."
+    ],
+    /* 113 5.2.2 equipo. Correcta 0 */
+    [
+      "Práctica guiada, de lo simple a lo fino, y el intercambio interno construyen la capacidad del equipo.",
+      "Una charla seguida de una prohibición no deja practicar.",
+      "Las herramientas no autorizadas son IA en la sombra, no un plan de formación.",
+      "Sustituir al equipo en el piloto elimina a quien debía aprender."
     ]
   ];
 

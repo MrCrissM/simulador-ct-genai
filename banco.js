@@ -632,7 +632,7 @@
       "¿Cuáles DOS normas son las más pertinentes para usar IA generativa en la prueba, según el programa de estudios?",
       [
         "ISO/IEC 25010:2023, modelo de calidad de producto.",
-        "ISO/IEC 23053:2022, marco de calidad de datos, transparencia y tolerancia a fallos.",
+        "ISO/IEC 23053:2022, marco de sistemas de IA con aprendizaje automático: calidad de datos, transparencia y seguridad.",
         "ISO/IEC/IEEE 29119-2:2021, procesos de prueba.",
         "ISO/IEC 42001:2023, requisitos para gestionar sistemas de IA en la organización.",
         "ISO/IEC/IEEE 29119-3:2021, documentación de prueba."
@@ -649,7 +649,7 @@
         "Solo el glosario de fundamentos, porque el programa no nombra normas de IA."
       ],
       [1],
-      "Esas dos normas son las que el programa menciona para calidad de datos, transparencia, tolerancia a fallos y para la gestión de sistemas de IA. Las de procesos, documentación y calidad de producto no cubren el uso de IA generativa en la prueba."),
+      "Esas dos normas son las que el programa menciona para calidad de datos, transparencia y seguridad, y para la gestión de sistemas de IA. Las de procesos, documentación y calidad de producto no cubren el uso de IA generativa en la prueba."),
 
     /* ---------- 4.1.1 Arquitectura ---------- */
     q("4.1.1", "K2", 1, 1,
@@ -1209,6 +1209,229 @@
         "Medir la eficacia de las salidas con las métricas estándar del aprendizaje supervisado."
       ],
       [0, 1],
-      "Integración con lo existente y gobernanza del uso y de los datos son elementos de la estrategia. Las certificaciones por modelo, acumular datos sin criterio y las métricas del aprendizaje supervisado no son los criterios que propone el programa.")
+        "Integración con lo existente y gobernanza del uso y de los datos son elementos de la estrategia. Las certificaciones por modelo, acumular datos sin criterio y las métricas del aprendizaje supervisado no son los criterios que propone el programa."),
+
+    /* ---------- variantes para objetivos con solo dos formulaciones ---------- */
+    q("1.1.1", "K1", 1, 1,
+      "Un probador pide a una herramienta que invente mensajes de error que el sistema nunca ha mostrado, parecidos a los reales. ¿En qué punto del espectro encaja?",
+      [
+        "IA simbólica, porque aplica reglas de negocio ya escritas.",
+        "Aprendizaje automático clásico, porque alguien eligió antes las características de los mensajes.",
+        "Aprendizaje profundo, porque solo clasifica mensajes que ya existían.",
+        "IA generativa, porque crea datos nuevos imitando patrones del entrenamiento."
+      ],
+      [3],
+      "Inventar mensajes que no estaban en el sistema es crear datos nuevos. Las reglas escritas son IA simbólica, las características elegidas a mano son aprendizaje clásico y clasificar lo ya existente, sin crear, no es generativa."),
+
+    q("1.1.4", "K2", 1, 1,
+      "El equipo adjunta la captura de una pantalla y pide criterios de aceptación. ¿Qué tipo de modelo hace falta?",
+      [
+        "Uno solo de texto: la captura se convierte sola en palabras.",
+        "Uno multimodal, de visión y lenguaje, porque la entrada mezcla imagen y texto.",
+        "Uno simbólico: la interfaz se resume en reglas y no hace falta verla.",
+        "Uno de aprendizaje automático clásico: la captura ya trae las características elegidas."
+      ],
+      [1],
+      "La captura es una imagen. Hace falta un modelo que acepte imagen y texto. Un modelo solo de texto no ve la pantalla, y ni las reglas ni las características elegidas a mano sustituyen esa entrada."),
+
+    q("1.2.1", "K2", 1, 2,
+      "¿Cuáles DOS encargos aprovechan una capacidad clave del modelo en la prueba?",
+      [
+        "Resumir un informe de defectos largo y señalar contradicciones.",
+        "Cerrar el defecto sin que nadie lo lea.",
+        "Proponer oráculos a partir de los criterios de aceptación.",
+        "Dar por cierta la salida porque el modelo se entrenó con internet.",
+        "Ejecutar en producción el parche que él mismo escribió, sin revisión."
+      ],
+      [0, 2],
+      "Resumir y contrastar un informe, y proponer oráculos desde los criterios, son trabajo de lenguaje que el modelo puede apoyar. Cerrar sin lectura, fiarse del entrenamiento o desplegar sin revisión dejan fuera a quien prueba."),
+
+    q("1.2.2", "K2", 1, 1,
+      "¿Cuál es una aplicación de prueba impulsada por un modelo, y no un simple chatbot?",
+      [
+        "Una charla abierta en la que el probador pregunta lo que se le ocurre.",
+        "Un flujo que toma una historia, recupera el criterio de aceptación y devuelve casos en una plantilla fija.",
+        "El mismo chat de uso general, con otro nombre en el menú.",
+        "Una hoja de cálculo sin modelo, con fórmulas de cobertura."
+      ],
+      [1],
+      "La aplicación encaja el modelo en un recorrido definido y un formato de salida. La charla libre es un chatbot, cambiar el nombre no crea un flujo y una hoja sin modelo no usa IA generativa."),
+
+    q("2.1.2", "K2", 1, 1,
+      "Hay un único caso Gherkin ya aceptado y se quiere que el modelo imite ese formato en una historia nueva. ¿Qué técnica es?",
+      [
+        "Sin ejemplos: no hace falta mostrar el caso.",
+        "Con un ejemplo: se muestra ese único caso aceptado.",
+        "Con pocos ejemplos: un caso solo no cuenta y hace falta una colección.",
+        "Meta-prompting: el modelo reescribe el prompt y el caso no se usa."
+      ],
+      [1],
+      "Un solo caso de muestra es la técnica de un ejemplo. Sin ejemplos no se muestra nada. Pocos ejemplos pide varios. El meta-prompting refina el prompt, no imita ese caso."),
+
+    q("2.2.2", "K3", 2, 1,
+      "Una historia tiene tres criterios y el caso de pago solo tiene sentido si el acceso previo ya pasó. ¿Qué encargo aplica el diseño de pruebas con IA generativa?",
+      [
+        "Un único prompt que pida «casos buenos», sin nombrar criterios ni dependencias.",
+        "Encadenar: primero un caso por criterio y después ordenarlos según dependencias y prioridad.",
+        "Pedir solo datos límite, sin casos ni prioridad.",
+        "Pedir al modelo que ejecute la historia en producción."
+      ],
+      [1],
+      "El diseño pasa de los criterios a casos y respeta las dependencias. Encadenar separa esos pasos. Un pedido vago, solo límites o la ejecución en producción no diseñan la prueba."),
+
+    q("2.2.3", "K3", 2, 1,
+      "Cambió el cálculo del descuento. ¿Qué uso de IA generativa encaja con la regresión automatizada?",
+      [
+        "Pedir qué guiones de regresión tocan el descuento y proponer cómo actualizarlos.",
+        "Borrar la batería de regresión y generar una aplicación nueva.",
+        "Redactar solo el correo de la release, sin mirar los guiones.",
+        "Dejar que el modelo decida no regresar nada porque el cambio parece pequeño."
+      ],
+      [0],
+      "En regresión el modelo ayuda a localizar y actualizar los guiones afectados. No sustituye la suite, no se queda en el correo y no descarta la regresión por una impresión."),
+
+    q("2.2.4", "K3", 2, 1,
+      "Quien dirige la prueba quiere saber si el ciclo se desvía del plan. ¿Qué encargo es monitorización y control con IA generativa?",
+      [
+        "Pedir un resumen del avance, de los desvíos y de los riesgos abiertos a partir de los resultados del ciclo.",
+        "Pedir casos nuevos de una historia que aún no se ha analizado.",
+        "Pedir que reescriba el código de producción.",
+        "Pedir solo la definición de «métrica», sin usar los datos del ciclo."
+      ],
+      [0],
+      "Monitorizar es leer el ciclo en curso. Los otros encargos diseñan casos nuevos, tocan producción o no usan los resultados, así que no controlan el ciclo."),
+
+    q("2.2.5", "K3", 2, 1,
+      "Hay que pasar una tabla de decisiones a casos, y ya existen cuatro filas bien hechas. ¿Qué técnica conviene?",
+      [
+        "Sin ejemplos, para que el modelo invente el formato.",
+        "Con pocos ejemplos, mostrando esas filas para fijar formato y contenido.",
+        "Meta-prompting, porque la tabla ya es un prompt de sistema.",
+        "Encadenar en un paso por celda, aunque la transformación es directa."
+      ],
+      [1],
+      "Las filas ya muestran el formato deseado: lo propio es enseñarlas. Sin ejemplos se desaprovechan. El meta-prompting y un encadenamiento por celda no aportan a una transformación directa."),
+
+    q("2.3.2", "K2", 1, 1,
+      "La primera salida omite los valores límite. ¿Qué es evaluar y afinar el prompt?",
+      [
+        "Aceptar la salida y no volver a consultar el modelo.",
+        "Revisar qué faltó, ajustar la instrucción o los ejemplos y comparar la nueva salida.",
+        "Subir la temperatura al máximo para que los límites aparezcan por azar.",
+        "Cambiar de tarea y no volver a mirar esta."
+      ],
+      [1],
+      "Afinar es un ciclo de revisión y ajuste. Aceptar el primer borrador, confiar en el azar o abandonar la tarea no compara ni corrige el prompt."),
+
+    q("3.1.2", "K3", 2, 1,
+      "La especificación dice que la edad mínima es 18. El modelo escribe la regla bien y luego añade: «conviene priorizar a candidatos de ciertos países porque suelen ser más cuidadosos». ¿Qué hay en esa segunda frase?",
+      [
+        "Una alucinación: inventa un campo que no existe.",
+        "Un sesgo: generaliza un grupo sin apoyo en la especificación.",
+        "Un error de razonamiento: se equivoca al sumar 18.",
+        "Una mitigación correcta del comportamiento no determinista."
+      ],
+      [1],
+      "La regla de edad coincide con la especificación. La frase siguiente atribuye una cualidad a un grupo sin que la base de prueba lo diga: eso es un sesgo, no un fallo aritmético ni una técnica de control."),
+
+    q("3.1.3", "K2", 1, 1,
+      "Las salidas inventan campos que no están en la especificación. ¿Qué mitigación encaja mejor?",
+      [
+        "Exigir que cada afirmación cite el fragmento de la especificación y revisar las que no citan.",
+        "Subir la temperatura para que invente menos.",
+        "Quitar la especificación del prompt para que el modelo use su criterio.",
+        "Aceptar la salida si suena profesional."
+      ],
+      [0],
+      "Citar la fuente y revisar lo que no cita ata la salida a la especificación. Más temperatura aumenta la variación, quitar la especificación deja al modelo sin fuente y el tono profesional no comprueba los campos."),
+
+    q("3.1.4", "K1", 1, 1,
+      "¿Qué ayuda a mitigar el comportamiento no determinista?",
+      [
+        "Fijar una temperatura baja y, si la herramienta lo permite, una semilla, y comprobar la salida con reglas.",
+        "Subir la temperatura para que todas las corridas coincidan.",
+        "Borrar el prompt de sistema en cada llamada.",
+        "Pedir la respuesta en prosa libre y no compararla con nada."
+      ],
+      [0],
+      "Menos temperatura y una semilla reducen la variación, y las reglas comprueban el resultado. Las otras opciones aumentan el azar o quitan controles."),
+
+    q("3.4.1", "K1", 1, 2,
+      "Además de las normas ISO de IA, ¿cuáles DOS referencias usa el programa para el marco legal y la gestión de riesgos?",
+      [
+        "El Reglamento europeo de IA, que clasifica usos según el riesgo.",
+        "El marco de gestión de riesgos de IA del NIST.",
+        "ISO/IEC/IEEE 29119-2, procesos de prueba.",
+        "ISO/IEC 25010, calidad de producto.",
+        "El glosario de fundamentos como única fuente de gobierno de la IA."
+      ],
+      [0, 1],
+      "El programa suma el Reglamento europeo de IA y el marco NIST a las normas ISO de IA. Las normas de procesos y de calidad de producto, y el glosario de fundamentos, no ocupan ese lugar."),
+
+    q("4.1.3", "K2", 1, 1,
+      "Quieren un agente que prepare datos de prueba y se detenga para que una persona acepte los casos de pago. ¿Qué lectura es la correcta?",
+      [
+        "Un agente con un objetivo puede preparar los datos, y el tramo de pago sigue con supervisión humana.",
+        "Si hay un objetivo, la aceptación humana sobra en todos los casos.",
+        "Los agentes solo sirven para charlar y no pueden llamar herramientas de datos.",
+        "Un agente autónomo debe desplegar el cambio en producción sin registro."
+      ],
+      [0],
+      "El agente puede usar herramientas para un objetivo, y donde el riesgo es alto se mantiene a la persona. El objetivo no elimina la verificación, y desplegar sin registro se sale de ese uso."),
+
+    q("4.2.2", "K2", 1, 1,
+      "¿Qué actividad es propia de las operaciones de modelos al usarlos en la prueba?",
+      [
+        "Versionar prompts y modelos, vigilar la calidad de las salidas y controlar los cambios.",
+        "Elegir a mano las características de un modelo clásico y no volver a medirlo.",
+        "Sustituir el informe de prueba por el log de entrenamiento.",
+        "Publicar el modelo sin control de acceso para que cualquiera lo ajuste."
+      ],
+      [0],
+      "Operar el modelo es controlar versiones, calidad y cambios. Las otras opciones describen un modelo clásico, confunden informes o dejan el modelo sin gobierno."),
+
+    q("5.1.3", "K2", 1, 1,
+      "La tarea es clasificar defectos cortos, los datos no pueden salir de la red interna y el coste por llamada importa. ¿Qué encaja mejor?",
+      [
+        "El modelo más grande en una nube pública, sin mirar el coste.",
+        "Un modelo pequeño que pueda ejecutarse en la red interna, si la calidad de esa tarea le basta.",
+        "Cualquier modelo: el tamaño no cambia ni el coste ni la privacidad.",
+        "Ningún modelo: una tarea corta solo puede hacerla un sistema de reglas."
+      ],
+      [1],
+      "Con datos que no pueden salir y una tarea acotada, un modelo pequeño interno puede ser la mejor relación entre calidad, coste y privacidad. El tamaño sí importa, y la tarea corta no obliga a volver a las reglas."),
+
+    q("5.1.4", "K1", 1, 1,
+      "¿Cuál recuerda bien las fases de adopción del programa?",
+      [
+        "Uso e iteración, después descubrimiento y al final definir el uso.",
+        "Descubrimiento, inicio y definición del uso, y uso e iteración. Dos casos de uso pueden ir en fases distintas a la vez.",
+        "Solo dos fases: comprar un modelo y disolver el equipo de prueba.",
+        "Una fase única: desplegar la IA en todos los procesos el primer día."
+      ],
+      [1],
+      "El orden es descubrimiento, definición del uso y uso con iteración. Las fases pueden solaparse según el caso de uso. Comprar y desplegar todo de entrada no es ese recorrido."),
+
+    q("5.2.1", "K2", 1, 1,
+      "¿Qué habilidad es esencial para probar con IA generativa?",
+      [
+        "Saber escribir prompts, revisar la salida y detectar alucinaciones y sesgos.",
+        "Memorizar el código fuente del modelo.",
+        "Dejar de aplicar criterios de prueba, porque el modelo ya los trae.",
+        "Sustituir la comunicación del equipo por más llamadas al modelo."
+      ],
+      [0],
+      "La habilidad está en guiar el prompt y verificar la salida. El código interno del modelo, abandonar el criterio de prueba o aislar al equipo no son ese conocimiento."),
+
+    q("5.2.2", "K2", 1, 1,
+      "¿Cómo se desarrollan las capacidades de IA generativa en un equipo de prueba?",
+      [
+        "Con práctica guiada, de prompts simples a técnicas más finas, y compartiendo lo que funciona.",
+        "Con una sola charla y la prohibición de volver a usar el modelo.",
+        "Dejando que cada persona use herramientas no autorizadas para aprender más rápido.",
+        "Sustituyendo al equipo por el modelo en cuanto hay un piloto."
+      ],
+      [0],
+      "La capacidad se construye practicando y compartiendo, de lo simple a lo más fino. Una charla aislada, la IA en la sombra o reemplazar al equipo no forman esa competencia.")
   ];
 })();
