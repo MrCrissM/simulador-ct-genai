@@ -1,0 +1,682 @@
+/* Simulador de práctica CT-GenAI. */
+(function () {
+  var PLAN = [
+    ["1.1.1", "K1", 1, 1],
+    ["1.1.2", "K2", 1, 1],
+    ["1.1.2", "K2", 1, 1],
+    ["1.1.3", "K2", 1, 1],
+    ["1.1.4", "K2", 1, 1],
+    ["1.2.1", "K2", 1, 2],
+    ["1.2.2", "K2", 1, 1],
+    ["2.1.1", "K2", 1, 1],
+    ["2.1.1", "K2", 1, 1],
+    ["2.1.2", "K2", 1, 1],
+    ["2.1.3", "K2", 1, 1],
+    ["2.2.1", "K3", 2, 1],
+    ["2.2.2", "K3", 2, 1],
+    ["2.2.3", "K3", 2, 1],
+    ["2.2.4", "K3", 2, 1],
+    ["2.2.5", "K3", 2, 1],
+    ["2.3.1", "K2", 1, 1],
+    ["2.3.2", "K2", 1, 1],
+    ["3.1.1", "K1", 1, 1],
+    ["3.1.2", "K3", 2, 1],
+    ["3.1.3", "K2", 1, 1],
+    ["3.1.4", "K1", 1, 1],
+    ["3.2.1", "K2", 1, 1],
+    ["3.2.2", "K2", 1, 1],
+    ["3.2.2", "K2", 1, 1],
+    ["3.2.3", "K2", 1, 1],
+    ["3.3.1", "K2", 1, 1],
+    ["3.4.1", "K1", 1, 2],
+    ["4.1.1", "K2", 1, 1],
+    ["4.1.2", "K2", 1, 1],
+    ["4.1.3", "K2", 1, 1],
+    ["4.2.1", "K2", 1, 1],
+    ["4.2.2", "K2", 1, 1],
+    ["5.1.1", "K1", 1, 1],
+    ["5.1.2", "K2", 1, 1],
+    ["5.1.3", "K2", 1, 1],
+    ["5.1.4", "K1", 1, 1],
+    ["5.2.1", "K2", 1, 1],
+    ["5.2.2", "K1", 1, 1],
+    ["5.2.3", "K1", 1, 1]
+  ];
+
+  var CAPITULOS = {
+    "1": "Introducción a la IA generativa",
+    "2": "Ingeniería de prompts",
+    "3": "Gestión de riesgos",
+    "4": "Infraestructura de prueba impulsada por LLM",
+    "5": "Despliegue e integración"
+  };
+
+  var TOTAL_PUNTOS = 46;
+  var CORTE = 30;
+  var CLAVE_HIST = "ctgenai-historial";
+  var CLAVE_SESION = "ctgenai-sesion";
+  var CLAVE_PAUSA = "ctgenai-pausado";
+
+  var estado = null;
+  var reloj = null;
+
+  function barajar(lista) {
+    var a = lista.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function porLo(lo) {
+    return window.BANCO.filter(function (p) { return p.lo === lo; });
+  }
+
+  function armarExamen() {
+    var usados = {};
+    var preguntas = PLAN.map(function (slot) {
+      var lo = slot[0];
+      var candidatas = porLo(lo).filter(function (p) { return !usados[p._id]; });
+      if (!candidatas.length) candidatas = porLo(lo);
+      var elegida = barajar(candidatas)[0];
+      usados[elegida._id] = true;
+      var orden = barajar(elegida.opciones.map(function (_, i) { return i; }));
+      var correctas = elegida.correctas.map(function (i) { return orden.indexOf(i); }).sort(function (a, b) { return a - b; });
+      return {
+        lo: elegida.lo,
+        k: elegida.k,
+        puntos: elegida.puntos,
+        elegir: elegida.elegir,
+        enunciado: elegida.enunciado,
+        lista: elegida.lista || null,
+        opciones: orden.map(function (i) { return elegida.opciones[i]; }),
+        porques: elegida.porques ? orden.map(function (i) { return elegida.porques[i]; }) : null,
+        correctas: correctas,
+        porque: elegida.porque
+      };
+    });
+    return barajar(preguntas);
+  }
+
+  function letra(i) { return String.fromCharCode(97 + i); }
+
+  var NUMERALES = ["", "UNA", "DOS", "TRES", "CUATRO"];
+  function consigna(elegir) {
+    return elegir > 1 ? "Elija " + NUMERALES[elegir] + " opciones." : "Elija UNA opción.";
+  }
+
+  function htmlLista(p) {
+    if (!p.lista || !p.lista.length) return "";
+    return "<ol class='lista'>" + p.lista.map(function (item) {
+      return "<li><span class='rotulo'>" + escapar(item[0]) + ".</span><span>" + escapar(item[1]) + "</span></li>";
+    }).join("") + "</ol>";
+  }
+
+  function mismoConjunto(a, b) {
+    if (!a || a.length !== b.length) return false;
+    var x = a.slice().sort(function (m, n) { return m - n; });
+    var y = b.slice().sort(function (m, n) { return m - n; });
+    for (var i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
+    return true;
+  }
+
+  function puntuar(preguntas, respuestas) {
+    var puntos = 0;
+    var detalle = preguntas.map(function (p, i) {
+      var marca = respuestas[i] || [];
+      var bien = mismoConjunto(marca, p.correctas);
+      if (bien) puntos += p.puntos;
+      return { bien: bien, marca: marca };
+    });
+    return { puntos: puntos, detalle: detalle, aprobado: puntos >= CORTE };
+  }
+
+  function guardarHistorial(item) {
+    var h = leerHistorial();
+    h.unshift(item);
+    h = h.slice(0, 20);
+    /* Cada intento guarda el examen completo; si el navegador se queda sin espacio, se sueltan los más antiguos. */
+    while (h.length) {
+      try {
+        localStorage.setItem(CLAVE_HIST, JSON.stringify(h));
+        return;
+      } catch (e) {
+        h.pop();
+      }
+    }
+  }
+
+  function leerHistorial() {
+    try { return JSON.parse(localStorage.getItem(CLAVE_HIST)) || []; }
+    catch (e) { return []; }
+  }
+
+  function persistir() {
+    if (!estado) return;
+    sessionStorage.setItem(CLAVE_SESION, JSON.stringify(estado));
+  }
+
+  function leerPausado() {
+    try {
+      var p = JSON.parse(localStorage.getItem(CLAVE_PAUSA));
+      return p && p.preguntas && p.respuestas && typeof p.restante === "number" ? p : null;
+    } catch (e) { return null; }
+  }
+
+  function contarRespondidas(respuestas) {
+    return respuestas.filter(function (r) { return r && r.length; }).length;
+  }
+
+  function formatear(seg) {
+    seg = Math.max(0, seg);
+    var m = Math.floor(seg / 60);
+    var s = seg % 60;
+    return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function restantes() {
+    return Math.round((estado.fin - Date.now()) / 1000);
+  }
+
+  function el(html) {
+    var n = document.createElement("div");
+    n.innerHTML = html.trim();
+    return n.firstChild;
+  }
+
+  function escapar(t) {
+    return String(t)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function mostrar(nodo) {
+    var raiz = document.getElementById("app");
+    raiz.innerHTML = "";
+    raiz.appendChild(nodo);
+  }
+
+  function pararReloj() {
+    if (reloj) { clearInterval(reloj); reloj = null; }
+  }
+
+  /* ---------- pantallas ---------- */
+  function nombreModo(modo) {
+    return modo === "prueba" ? "Examen de prueba" : "Examen real";
+  }
+
+  function pantallaInicio() {
+    pararReloj();
+    estado = null;
+    sessionStorage.removeItem(CLAVE_SESION);
+    var hist = leerHistorial();
+    var pausado = leerPausado();
+    var filas = hist.length
+      ? hist.map(function (h, i) {
+          var revisable = h.preguntas && h.respuestas;
+          var etiqueta = h.incompleto ? "Incompleto" : (h.aprobado ? "Aprobado" : "No aprobado");
+          var detalle = escapar(nombreModo(h.modo));
+          if (h.porTiempo) detalle += " · tiempo agotado";
+          else if (h.incompleto) detalle += " · terminado sin completar";
+          return "<li class='intento'>" +
+            "<span class='intento-fecha'>" + escapar(h.fecha) + "<small>" + detalle + "</small></span>" +
+            "<strong>" + h.puntos + "/" + TOTAL_PUNTOS + "</strong>" +
+            "<em class='" + (h.incompleto ? "neutro" : (h.aprobado ? "ok" : "mal")) + "'>" + etiqueta + "</em>" +
+            (revisable
+              ? "<button type='button' class='revisar' data-i='" + i + "'>Revisar</button>"
+              : "<span class='sin-detalle'>Sin detalle</span>") +
+          "</li>";
+        }).join("")
+      : "<li class='vacio'>Todavía no hay intentos en este navegador.</li>";
+
+    var tarjetaPausa = "";
+    if (pausado) {
+      tarjetaPausa =
+        "<div class='pausado'>" +
+          "<p class='kicker'>Examen en pausa</p>" +
+          "<p><strong>" + escapar(nombreModo(pausado.modo)) + "</strong> · pausado el " + escapar(pausado.fechaPausa || "") +
+          "<br>" + contarRespondidas(pausado.respuestas) + " de 40 respondidas · quedan <strong>" + formatear(pausado.restante) + "</strong> de tiempo.</p>" +
+          "<div class='acciones'>" +
+            "<button type='button' class='primario' id='continuar'>Continuar el examen</button>" +
+            "<button type='button' id='descartar-pausa'>Descartar</button>" +
+          "</div>" +
+        "</div>";
+    }
+
+    var nodo = el(
+      "<section class='panel inicio'>" +
+        "<p class='kicker'>Práctica · ISTQB CT-GenAI</p>" +
+        "<h1>Simulador de examen</h1>" +
+        tarjetaPausa +
+        "<p class='lead'>Elige cómo quieres rendir. En los dos modos cada intento arma un examen nuevo: una formulación distinta por objetivo de aprendizaje, con las opciones y el orden barajados. Las preguntas son originales, escritas a partir del programa de estudios y del estilo del examen de muestra. No son los ítems oficiales.</p>" +
+        "<ul class='reglas'>" +
+          "<li><strong>40 preguntas</strong> y <strong>46 puntos</strong>, como el examen.</li>" +
+          "<li>Se aprueba con <strong>30 puntos</strong> (65&nbsp;%).</li>" +
+          "<li><strong>60 minutos</strong>. Quien no rinde en su lengua materna dispone de 75.</li>" +
+          "<li>Seis preguntas de nivel K3 valen 2 puntos. El resto vale 1.</li>" +
+          "<li>En las de «elija dos», el punto cuenta solo si las dos opciones son las correctas.</li>" +
+        "</ul>" +
+        "<label class='check'><input type='checkbox' id='extra'> Añadir el 25&nbsp;% de tiempo (75 minutos)</label>" +
+        "<div class='modos'>" +
+          "<button type='button' class='modo' id='modo-real'>" +
+            "<strong>Examen real</strong>" +
+            "<span>Las 40 preguntas, sin comentarios mientras respondes. La nota y la corrección aparecen solo al entregar.</span>" +
+          "</button>" +
+          "<button type='button' class='modo' id='modo-prueba'>" +
+            "<strong>Examen de prueba</strong>" +
+            "<span>Marcas la opción y, al confirmarla, ves enseguida cuál es la correcta y por qué.</span>" +
+          "</button>" +
+        "</div>" +
+        "<h2>Intentos anteriores</h2>" +
+        (hist.length ? "<p class='nota-hist'>Pulsa «Revisar» para volver a ver el examen completo de ese intento, con tus respuestas, las correctas y la explicación de cada pregunta.</p>" : "") +
+        "<ul class='historial'>" + filas + "</ul>" +
+      "</section>"
+    );
+    mostrar(nodo);
+    var continuar = nodo.querySelector("#continuar");
+    if (continuar) continuar.addEventListener("click", reanudar);
+    var descartar = nodo.querySelector("#descartar-pausa");
+    if (descartar) descartar.addEventListener("click", function () {
+      if (window.confirm("¿Descartar el examen en pausa? No se guardará ningún resultado.")) {
+        localStorage.removeItem(CLAVE_PAUSA);
+        pantallaInicio();
+      }
+    });
+    nodo.querySelectorAll(".revisar").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var intento = hist[Number(b.getAttribute("data-i"))];
+        if (intento) pintarResultado(intento, false);
+      });
+    });
+    function minutosElegidos() {
+      return nodo.querySelector("#extra").checked ? 75 : 60;
+    }
+    function arrancarNuevo(modo) {
+      if (pausado && !window.confirm("Tienes un examen en pausa. Si empiezas otro, el pausado seguirá guardado para continuarlo después. ¿Empezar un examen nuevo?")) return;
+      empezar(minutosElegidos(), modo);
+    }
+    nodo.querySelector("#modo-real").addEventListener("click", function () { arrancarNuevo("real"); });
+    nodo.querySelector("#modo-prueba").addEventListener("click", function () { arrancarNuevo("prueba"); });
+  }
+
+  function pausar() {
+    if (!estado || estado.cerrado) return;
+    pararReloj();
+    var copia = JSON.parse(JSON.stringify(estado));
+    copia.restante = Math.max(0, restantes());
+    copia.fechaPausa = new Date().toLocaleString("es");
+    delete copia.fin;
+    try {
+      localStorage.setItem(CLAVE_PAUSA, JSON.stringify(copia));
+    } catch (e) {
+      window.alert("No se pudo guardar el examen en pausa: el navegador no tiene espacio. El examen sigue en curso.");
+      arrancarReloj();
+      return;
+    }
+    estado = null;
+    sessionStorage.removeItem(CLAVE_SESION);
+    pantallaInicio();
+  }
+
+  function reanudar() {
+    var pausado = leerPausado();
+    if (!pausado) { pantallaInicio(); return; }
+    estado = pausado;
+    estado.fin = Date.now() + estado.restante * 1000;
+    delete estado.restante;
+    delete estado.fechaPausa;
+    localStorage.removeItem(CLAVE_PAUSA);
+    persistir();
+    if (restantes() <= 0) { cerrarExamen(true); return; }
+    pintarExamen();
+  }
+
+  function confirmarTerminar() {
+    var respondidas = contarRespondidas(estado.respuestas);
+    var corregidas = respondidas === 0 ? "No hay preguntas respondidas: quedará con 0 puntos"
+      : respondidas === 1 ? "Se corregirá la única pregunta respondida"
+      : "Se corregirán las " + respondidas + " preguntas respondidas";
+    var texto = "¿Terminar el examen ahora, sin completarlo?\n\n" +
+      corregidas + " y el intento quedará en el historial como incompleto. " +
+      "Si prefieres seguir en otro momento, usa «Pausar».";
+    if (window.confirm(texto)) cerrarExamen(false, true);
+  }
+
+  function empezar(minutos, modo) {
+    var preguntas = armarExamen();
+    estado = {
+      modo: modo === "prueba" ? "prueba" : "real",
+      preguntas: preguntas,
+      respuestas: preguntas.map(function () { return []; }),
+      reveladas: preguntas.map(function () { return false; }),
+      marcas: preguntas.map(function () { return false; }),
+      indice: 0,
+      fin: Date.now() + minutos * 60 * 1000,
+      minutos: minutos,
+      cerrado: false
+    };
+    persistir();
+    pintarExamen();
+  }
+
+  function htmlPorqueOpcion(p, i) {
+    if (!p.porques || !p.porques[i]) return "";
+    var correcta = p.correctas.indexOf(i) !== -1;
+    return "<p class='porque-op'><strong>" + (correcta ? "Es correcta. " : "No es correcta. ") + "</strong>" + escapar(p.porques[i]) + "</p>";
+  }
+
+  function htmlCorreccion(p, marca) {
+    var bien = mismoConjunto(marca, p.correctas);
+    var suyas = marca.length ? marca.map(letra).join(", ") : "ninguna";
+    var detalle = "";
+    if (!p.porques) {
+      var buenas = p.correctas.map(function (i) {
+        return "<li><span class='letra'>" + letra(i) + "</span><span>" + escapar(p.opciones[i]) + "</span></li>";
+      }).join("");
+      detalle = "<p>" + (p.correctas.length > 1 ? "Las respuestas correctas son:" : "La respuesta correcta es:") + "</p>" +
+        "<ul class='correctas-lista'>" + buenas + "</ul>" +
+        "<p class='porque'><strong>Por qué. </strong>" + escapar(p.porque) + "</p>";
+    }
+    return "<div class='correccion " + (bien ? "ok" : "mal") + "' id='correccion' role='status'>" +
+      "<p class='correccion-titulo'>" + (bien ? "Correcta" : "Incorrecta") + "</p>" +
+      (bien ? "" : "<p>Marcaste " + escapar(suyas) + ".</p>") +
+      (p.porques ? "<p>Cada opción indica por qué es correcta o por qué no lo es.</p>" : "") +
+      detalle +
+    "</div>";
+  }
+
+  function pintarExamen() {
+    var p = estado.preguntas[estado.indice];
+    var marca = estado.respuestas[estado.indice];
+    var revelada = estado.modo === "prueba" && estado.reveladas[estado.indice];
+    var tipo = p.elegir > 1 ? "checkbox" : "radio";
+    var aviso = consigna(p.elegir);
+    var opciones = p.opciones.map(function (texto, i) {
+      var activo = marca.indexOf(i) !== -1;
+      var cls = "opcion";
+      if (revelada) {
+        if (p.correctas.indexOf(i) !== -1) cls += " buena";
+        else if (activo) cls += " mala";
+        cls += " bloqueada";
+      } else if (activo) {
+        cls += " activa";
+      }
+      return "<div class='opcion-bloque'><label class='" + cls + "'>" +
+        "<input type='" + tipo + "' name='op' value='" + i + "'" + (activo ? " checked" : "") + (revelada ? " disabled" : "") + ">" +
+        "<span class='letra'>" + letra(i) + "</span><span>" + escapar(texto) + "</span></label>" +
+        (revelada ? htmlPorqueOpcion(p, i) : "") + "</div>";
+    }).join("");
+
+    var celdas = estado.preguntas.map(function (preg, i) {
+      var cls = (i === estado.indice ? "actual" : "") + (estado.respuestas[i].length ? " hecha" : "") + (estado.marcas[i] ? " bandera" : "");
+      if (estado.modo === "prueba" && estado.reveladas[i]) {
+        cls += mismoConjunto(estado.respuestas[i], preg.correctas) ? " acertada" : " fallada";
+      }
+      return "<button type='button' class='celda " + cls + "' data-i='" + i + "'>" + (i + 1) + "</button>";
+    }).join("");
+
+    var cap = CAPITULOS[p.lo.charAt(0)];
+    var puedeConfirmar = marca.length === p.elegir;
+    var botonConfirmar = (estado.modo === "prueba" && !revelada)
+      ? "<button type='button' class='primario' id='confirmar'" + (puedeConfirmar ? "" : " disabled") + ">Confirmar respuesta</button>"
+      : "";
+    var siguientePrimario = estado.modo !== "prueba" || revelada;
+    var clsSiguiente = siguientePrimario ? " class='primario'" : "";
+    var botonAvance = estado.indice < 39
+      ? "<button type='button' id='next'" + clsSiguiente + ">Siguiente</button>"
+      : "<button type='button' id='cerrar'" + clsSiguiente + ">Entregar examen</button>";
+    var pista = (estado.modo === "prueba" && !revelada)
+      ? "<p class='pista'>Elige la respuesta y pulsa Confirmar para ver cuál es la correcta y por qué. Después no podrás cambiarla.</p>"
+      : "";
+    var correccion = revelada ? htmlCorreccion(p, marca) : "";
+
+    var nodo = el(
+      "<section class='examen'>" +
+        "<header class='barra'>" +
+          "<div><strong>" + escapar(nombreModo(estado.modo)) + "</strong><span class='meta'>Pregunta " + (estado.indice + 1) + " de 40 · " + p.puntos + (p.puntos === 1 ? " punto" : " puntos") + " · " + p.k + "</span></div>" +
+          "<div class='barra-derecha'>" +
+            "<div class='barra-botones'>" +
+              "<button type='button' class='barra-btn' id='pausar' title='Guardar el examen y detener el tiempo para seguir después'>Pausar</button>" +
+              "<button type='button' class='barra-btn' id='terminar' title='Cerrar el examen ahora y guardarlo como incompleto'>Terminar</button>" +
+            "</div>" +
+            "<div class='tiempo' id='tiempo'>" + formatear(restantes()) + "</div>" +
+          "</div>" +
+        "</header>" +
+        "<div class='cuerpo'>" +
+          "<nav class='mapa' aria-label='Preguntas'>" + celdas + "</nav>" +
+          "<article class='pregunta'>" +
+            "<p class='lo'>" + escapar(cap) + " · GenAI-" + escapar(p.lo) + "</p>" +
+            "<h1>" + escapar(p.enunciado) + "</h1>" +
+            htmlLista(p) +
+            "<p class='aviso'>" + aviso + "</p>" +
+            "<div class='opciones'>" + opciones + "</div>" +
+            pista +
+            correccion +
+            "<footer class='pie-pregunta'>" +
+              "<label class='check'><input type='checkbox' id='bandera'" + (estado.marcas[estado.indice] ? " checked" : "") + "> Marcar para revisar</label>" +
+              "<div class='acciones'>" +
+                "<button type='button' id='prev' " + (estado.indice === 0 ? "disabled" : "") + ">Anterior</button>" +
+                botonConfirmar +
+                botonAvance +
+              "</div>" +
+            "</footer>" +
+          "</article>" +
+        "</div>" +
+      "</section>"
+    );
+    mostrar(nodo);
+
+    nodo.querySelectorAll(".celda").forEach(function (b) {
+      b.addEventListener("click", function () {
+        estado.indice = Number(b.getAttribute("data-i"));
+        persistir();
+        pintarExamen();
+      });
+    });
+    nodo.querySelectorAll("input[name='op']").forEach(function (input) {
+      input.addEventListener("change", function () {
+        leerMarcas(nodo, p.elegir);
+      });
+    });
+    nodo.querySelector("#bandera").addEventListener("change", function (e) {
+      estado.marcas[estado.indice] = e.target.checked;
+      persistir();
+      pintarExamen();
+    });
+    var prev = nodo.querySelector("#prev");
+    if (prev) prev.addEventListener("click", function () { mover(-1); });
+    var next = nodo.querySelector("#next");
+    if (next) next.addEventListener("click", function () { mover(1); });
+    var cerrar = nodo.querySelector("#cerrar");
+    if (cerrar) cerrar.addEventListener("click", function () { confirmarCierre(); });
+    var confirmar = nodo.querySelector("#confirmar");
+    if (confirmar) confirmar.addEventListener("click", confirmarRespuesta);
+    nodo.querySelector("#pausar").addEventListener("click", pausar);
+    nodo.querySelector("#terminar").addEventListener("click", confirmarTerminar);
+
+    arrancarReloj();
+  }
+
+  function leerMarcas(nodo, elegir) {
+    if (estado.modo === "prueba" && estado.reveladas[estado.indice]) return;
+    var previas = (estado.respuestas[estado.indice] || []).slice();
+    var inputs = Array.prototype.slice.call(nodo.querySelectorAll("input[name='op']"));
+    var marks = [];
+    inputs.forEach(function (input, idx) {
+      if (input.checked) marks.push(idx);
+    });
+    while (elegir > 1 && marks.length > elegir) {
+      var quitar = previas.length ? previas.shift() : marks[0];
+      if (marks.indexOf(quitar) === -1) quitar = marks[0];
+      inputs[quitar].checked = false;
+      marks = marks.filter(function (i) { return i !== quitar; });
+    }
+    estado.respuestas[estado.indice] = marks;
+    persistir();
+    nodo.querySelectorAll(".opcion").forEach(function (lab) {
+      lab.classList.toggle("activa", lab.querySelector("input").checked);
+    });
+    var celda = nodo.querySelector('.celda[data-i="' + estado.indice + '"]');
+    if (celda) celda.classList.toggle("hecha", marks.length > 0);
+    var confirmar = nodo.querySelector("#confirmar");
+    if (confirmar) confirmar.disabled = marks.length !== elegir;
+  }
+
+  function confirmarRespuesta() {
+    var p = estado.preguntas[estado.indice];
+    var marca = estado.respuestas[estado.indice] || [];
+    if (estado.modo !== "prueba" || estado.reveladas[estado.indice]) return;
+    if (marca.length !== p.elegir) return;
+    estado.reveladas[estado.indice] = true;
+    persistir();
+    pintarExamen();
+    var caja = document.getElementById("correccion");
+    if (caja && caja.scrollIntoView) caja.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function mover(delta) {
+    estado.indice = Math.min(39, Math.max(0, estado.indice + delta));
+    persistir();
+    pintarExamen();
+  }
+
+  function arrancarReloj() {
+    pararReloj();
+    reloj = setInterval(function () {
+      var caja = document.getElementById("tiempo");
+      var seg = restantes();
+      if (caja) {
+        caja.textContent = formatear(seg);
+        caja.classList.toggle("urgente", seg < 60);
+      }
+      if (seg <= 0) {
+        pararReloj();
+        cerrarExamen(true);
+      }
+    }, 250);
+  }
+
+  function confirmarCierre() {
+    var vacias = estado.respuestas.filter(function (r) { return !r.length; }).length;
+    var texto = vacias
+      ? "Quedan " + vacias + " preguntas sin responder. ¿Entregar el examen igualmente?"
+      : "¿Entregar el examen y ver el resultado?";
+    if (window.confirm(texto)) cerrarExamen(false);
+  }
+
+  function cerrarExamen(porTiempo, terminadoAntes) {
+    if (!estado || estado.cerrado) return;
+    estado.cerrado = true;
+    pararReloj();
+    var resultado = puntuar(estado.preguntas, estado.respuestas);
+    var intento = {
+      fecha: new Date().toLocaleString("es"),
+      puntos: resultado.puntos,
+      aprobado: resultado.aprobado,
+      porTiempo: porTiempo,
+      incompleto: !!terminadoAntes,
+      respondidas: contarRespondidas(estado.respuestas),
+      modo: estado.modo,
+      minutos: estado.minutos,
+      preguntas: estado.preguntas,
+      respuestas: estado.respuestas
+    };
+    guardarHistorial(intento);
+    sessionStorage.removeItem(CLAVE_SESION);
+    pintarResultado(intento, true);
+  }
+
+  /* Muestra el resultado de un intento: recién entregado (enVivo) o recuperado del historial. */
+  function pintarResultado(intento, enVivo) {
+    pararReloj();
+    var resultado = puntuar(intento.preguntas, intento.respuestas);
+    var porTiempo = intento.porTiempo;
+    var porCap = {};
+    intento.preguntas.forEach(function (p, i) {
+      var c = p.lo.charAt(0);
+      if (!porCap[c]) porCap[c] = { bien: 0, puntos: 0, max: 0 };
+      porCap[c].max += p.puntos;
+      if (resultado.detalle[i].bien) {
+        porCap[c].bien += 1;
+        porCap[c].puntos += p.puntos;
+      }
+    });
+    var filasCap = Object.keys(porCap).sort().map(function (c) {
+      var x = porCap[c];
+      return "<li><span>Capítulo " + c + ". " + escapar(CAPITULOS[c]) + "</span><strong>" + x.puntos + " de " + x.max + " puntos</strong></li>";
+    }).join("");
+
+    var repaso = intento.preguntas.map(function (p, i) {
+      var d = resultado.detalle[i];
+      var suyas = d.marca.length ? d.marca.map(letra).join(", ") : "sin respuesta";
+      var buenas = p.correctas.map(letra).join(", ");
+      var ops = p.opciones.map(function (t, k) {
+        var cls = p.correctas.indexOf(k) !== -1 ? "buena" : (d.marca.indexOf(k) !== -1 ? "mala" : "");
+        return "<li class='" + cls + "'><div class='op-linea'><span class='letra'>" + letra(k) + "</span><span>" + escapar(t) + "</span></div>" + htmlPorqueOpcion(p, k) + "</li>";
+      }).join("");
+      var cierre = (p.porques && p.porques.length)
+        ? ""
+        : "<p class='porque'><strong>Por qué. </strong>" + escapar(p.porque) + "</p>";
+      return "<details" + (d.bien ? "" : " open") + ">" +
+        "<summary><span class='pill " + (d.bien ? "ok" : "mal") + "'>" + (d.bien ? "Bien" : "Mal") + "</span> " +
+        (i + 1) + ". GenAI-" + escapar(p.lo) + " · " + p.k + " · " + p.puntos + " pt · su respuesta: " + suyas + " · correcta: " + buenas + "</summary>" +
+        "<p>" + escapar(p.enunciado) + "</p>" + htmlLista(p) + "<ol class='repaso-ops'>" + ops + "</ol>" + cierre + "</details>";
+    }).join("");
+
+    var cierreTxt = porTiempo ? "el tiempo se agotó" : (intento.incompleto ? "terminado sin completar" : "entregado");
+    var kicker = enVivo
+      ? escapar(nombreModo(intento.modo)) + " · " + cierreTxt
+      : "Repaso del intento · " + escapar(intento.fecha) + " · " + escapar(nombreModo(intento.modo)) + " · " + cierreTxt;
+    var titulo = intento.incompleto
+      ? "<h1 class='neutro'>Incompleto</h1>"
+      : "<h1 class='" + (resultado.aprobado ? "ok" : "mal") + "'>" + (resultado.aprobado ? "Aprobado" : "No aprobado") + "</h1>";
+    var respondidas = typeof intento.respondidas === "number" ? intento.respondidas : contarRespondidas(intento.respuestas);
+    var notaExtra = intento.incompleto
+      ? " · " + respondidas + " de 40 respondidas" + (resultado.aprobado ? " · con lo respondido ya superas el corte" : "")
+      : "";
+    var acciones = enVivo
+      ? "<button class='primario' id='otro' type='button'>Nuevo " + (intento.modo === "prueba" ? "examen de prueba" : "examen real") + "</button><button id='inicio' type='button'>Volver al inicio</button>"
+      : "<button class='primario' id='inicio' type='button'>Volver al inicio</button><button id='otro' type='button'>Nuevo " + (intento.modo === "prueba" ? "examen de prueba" : "examen real") + "</button>";
+
+    var nodo = el(
+      "<section class='panel resultado'>" +
+        "<p class='kicker'>" + kicker + "</p>" +
+        titulo +
+        "<p class='nota'>" + resultado.puntos + " / " + TOTAL_PUNTOS + " puntos · el corte es " + CORTE + notaExtra + "</p>" +
+        "<h2>Por capítulo</h2><ul class='historial'>" + filasCap + "</ul>" +
+        "<div class='acciones'>" + acciones + "</div>" +
+        "<h2>Repaso</h2>" + repaso +
+        "<div class='acciones acciones-pie'><button id='inicio-pie' type='button'>Volver al inicio</button></div>" +
+      "</section>"
+    );
+    mostrar(nodo);
+    nodo.querySelector("#otro").addEventListener("click", function () { empezar(intento.minutos || 60, intento.modo); });
+    nodo.querySelector("#inicio").addEventListener("click", pantallaInicio);
+    nodo.querySelector("#inicio-pie").addEventListener("click", pantallaInicio);
+    window.scrollTo(0, 0);
+  }
+
+  function restaurar() {
+    var crudo = sessionStorage.getItem(CLAVE_SESION);
+    if (!crudo) return false;
+    try { estado = JSON.parse(crudo); }
+    catch (e) { return false; }
+    if (!estado || estado.cerrado || !estado.preguntas) return false;
+    if (estado.modo !== "prueba") estado.modo = "real";
+    if (!estado.reveladas || estado.reveladas.length !== estado.preguntas.length) {
+      estado.reveladas = estado.preguntas.map(function () { return false; });
+    }
+    if (restantes() <= 0) { cerrarExamen(true); return true; }
+    pintarExamen();
+    return true;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    window.BANCO.forEach(function (p, i) { p._id = p.lo + "#" + i; });
+    if (!restaurar()) pantallaInicio();
+  });
+
+  window.CTGenAI = { PLAN: PLAN, armarExamen: armarExamen, puntuar: puntuar, TOTAL_PUNTOS: TOTAL_PUNTOS, CORTE: CORTE };
+})();
