@@ -390,9 +390,12 @@
             "<span class='intento-fecha'>" + escapar(h.fecha) + "<small>" + detalle + "</small></span>" +
             "<strong>" + h.puntos + "/" + TOTAL_PUNTOS + "</strong>" +
             "<em class='" + (h.incompleto ? "neutro" : (h.aprobado ? "ok" : "mal")) + "'>" + etiqueta + "</em>" +
-            (revisable
-              ? "<button type='button' class='revisar' data-i='" + i + "'>Revisar</button>"
-              : "<span class='sin-detalle'>Sin detalle</span>") +
+            "<span class='intento-acciones'>" +
+              (revisable
+                ? "<button type='button' class='revisar' data-i='" + i + "'>Revisar</button>"
+                : "<span class='sin-detalle'>Sin detalle</span>") +
+              "<button type='button' class='eliminar' data-i='" + i + "' title='Eliminar este intento del historial' aria-label='Eliminar el intento del " + escapar(h.fecha) + "'>Eliminar</button>" +
+            "</span>" +
           "</li>";
         }).join("")
       : "<li class='vacio'>Todavía no hay intentos en este navegador.</li>";
@@ -441,6 +444,7 @@
         "<div class='acciones'>" +
           "<button type='button' id='descargar-hist'>Descargar historial</button>" +
           "<button type='button' id='traer-hist'>Traer historial</button>" +
+          (hist.length ? "<button type='button' class='peligro' id='borrar-hist'>Borrar todo el historial</button>" : "") +
         "</div>" +
         (hist.length ? "<p class='nota-hist'>Pulsa «Revisar» para volver a ver el examen completo de ese intento, con tus respuestas, las correctas y la explicación de cada pregunta.</p>" : "") +
         "<ul class='historial'>" + filas + "</ul>" +
@@ -462,6 +466,24 @@
         var intento = hist[Number(b.getAttribute("data-i"))];
         if (intento) pintarResultado(intento, false);
       });
+    });
+    nodo.querySelectorAll(".eliminar").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var i = Number(b.getAttribute("data-i"));
+        var intento = hist[i];
+        if (!intento) return;
+        if (!window.confirm("¿Eliminar del historial el intento del " + intento.fecha + " (" + intento.puntos + "/" + TOTAL_PUNTOS + ")? No se puede deshacer.")) return;
+        var resto = hist.slice(0, i).concat(hist.slice(i + 1));
+        escribirHistorial(resto);
+        pantallaInicio();
+      });
+    });
+    var borrar = nodo.querySelector("#borrar-hist");
+    if (borrar) borrar.addEventListener("click", function () {
+      var n = hist.length;
+      if (!window.confirm("¿Borrar los " + n + (n === 1 ? " intento" : " intentos") + " del historial de este navegador? No se puede deshacer. Si quieres conservarlos, descárgalos antes.")) return;
+      escribirHistorial([]);
+      pantallaInicio();
     });
     function minutosElegidos() {
       return nodo.querySelector("#extra").checked ? 75 : 60;

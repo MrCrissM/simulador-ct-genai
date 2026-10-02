@@ -61,6 +61,11 @@ button.modo:hover, button.modo:focus-visible { border-color: var(--azul); backgr
 .intento-fecha small { display: block; color: var(--suave); font-size: 0.82rem; }
 .intento .revisar { padding: 0.35rem 0.8rem; border-color: var(--azul); color: var(--azul); font-weight: 600; }
 .intento .revisar:hover, .intento .revisar:focus-visible { background: var(--azul-claro); }
+.intento-acciones { display: flex; gap: 0.4rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.intento .eliminar { padding: 0.35rem 0.7rem; color: var(--mal); border-color: #e3b4b4; }
+.intento .eliminar:hover, .intento .eliminar:focus-visible { background: #fdecec; border-color: var(--mal); }
+button.peligro { color: var(--mal); border-color: #e3b4b4; }
+button.peligro:hover, button.peligro:focus-visible { background: #fdecec; border-color: var(--mal); }
 .intento .sin-detalle { color: var(--suave); font-size: 0.85rem; }
 .nota-hist { color: var(--suave); font-size: 0.92rem; margin: 0 0 0.5rem; }
 .acciones-pie { margin-top: 1.2rem; }
@@ -158,5 +163,5 @@ details.silabo p, details.silabo-completo p { margin: 0.45rem 0; }
   .modos { grid-template-columns: 1fr; }
   .historial li.intento { grid-template-columns: 1fr auto; }
   .historial li.intento em { grid-column: 1; }
-  .historial li.intento .revisar, .historial li.intento .sin-detalle { grid-column: 2; grid-row: 1 / span 2; }
+  .historial li.intento .intento-acciones { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; align-items: stretch; }
 }
