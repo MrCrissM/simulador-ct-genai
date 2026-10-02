@@ -323,6 +323,56 @@
     return modo === "prueba" ? "Examen de prueba" : "Examen real";
   }
 
+  function urlSilabo(pagina) {
+    var base = window.SILABO && window.SILABO.url;
+    if (!base) return "";
+    return base + (pagina ? "#page=" + pagina : "");
+  }
+
+  function enlaceSilabo(pagina, texto) {
+    return "<a class='enlace-silabo' href='" + urlSilabo(pagina) + "' target='_blank' rel='noopener noreferrer'>" + escapar(texto) + "</a>";
+  }
+
+  function htmlSilabo(lo, k) {
+    var tema = window.SILABO && window.SILABO.temas[lo];
+    if (!tema) return "";
+    return "<details class='silabo'>" +
+      "<summary>Ver en el sílabo</summary>" +
+      "<p>Objetivo <strong>GenAI-" + escapar(lo) + "</strong>" + (k ? " · " + escapar(k) : "") +
+      " · " + escapar(tema[0]) + ".</p>" +
+      "<p>En el programa de estudios oficial, en español, este apartado está en la página " + tema[1] + ".</p>" +
+      "<p>" + enlaceSilabo(tema[1], "Abrir la página " + tema[1] + " del sílabo") + "</p>" +
+    "</details>";
+  }
+
+  function htmlIndiceSilabo() {
+    if (!window.SILABO) return "";
+    var caps = window.SILABO.capitulos.map(function (c) {
+      return "<li>" + enlaceSilabo(c[2], "Capítulo " + c[0] + ". " + c[1] + " · página " + c[2]) + "</li>";
+    }).join("");
+    var porCap = {};
+    Object.keys(window.SILABO.temas).forEach(function (lo) {
+      var n = lo.charAt(0);
+      if (!porCap[n]) porCap[n] = [];
+      porCap[n].push(lo);
+    });
+    var objetivos = Object.keys(porCap).sort().map(function (n) {
+      var items = porCap[n].map(function (lo) {
+        var tema = window.SILABO.temas[lo];
+        return "<li>" + enlaceSilabo(tema[1], "GenAI-" + lo + " · " + tema[0] + " · p. " + tema[1]) + "</li>";
+      }).join("");
+      return "<li class='grupo-silabo'><strong>Capítulo " + n + "</strong><ul>" + items + "</ul></li>";
+    }).join("");
+    return "<details class='silabo-completo'>" +
+      "<summary>Sílabo completo para repaso</summary>" +
+      "<p>Programa de estudios oficial CT-GenAI v1.0 en español. El texto es del ISTQB y se abre en su documento.</p>" +
+      "<p>" + enlaceSilabo(1, "Abrir el sílabo completo") + "</p>" +
+      "<ul class='indice-silabo'>" + caps + "</ul>" +
+      "<p class='nota-hist'>Cada objetivo de aprendizaje abre la página donde el sílabo lo explica.</p>" +
+      "<ul class='indice-silabo'>" + objetivos + "</ul>" +
+    "</details>";
+  }
+
   function pantallaInicio() {
     pararReloj();
     estado = null;
@@ -385,6 +435,7 @@
             "<span>Marcas la opción y, al confirmarla, ves enseguida cuál es la correcta y por qué.</span>" +
           "</button>" +
         "</div>" +
+        htmlIndiceSilabo() +
         "<h2>Intentos anteriores</h2>" +
         "<p class='nota-hist'>El historial se guarda en este navegador. Para verlo en el celular, la tablet o el computador, descárgalo y tráelo en el otro aparato. El archivo también incluye el examen en pausa, si hay uno.</p>" +
         "<div class='acciones'>" +
@@ -569,6 +620,7 @@
       ? "<p class='pista'>Elige la respuesta y pulsa Confirmar para ver cuál es la correcta y por qué. Después no podrás cambiarla.</p>"
       : "";
     var correccion = revelada ? htmlCorreccion(p, marca) : "";
+    var bloqueSilabo = revelada ? htmlSilabo(p.lo, p.k) : "";
 
     var nodo = el(
       "<section class='examen'>" +
@@ -592,6 +644,7 @@
             "<div class='opciones'>" + opciones + "</div>" +
             pista +
             correccion +
+            bloqueSilabo +
             "<footer class='pie-pregunta'>" +
               "<label class='check'><input type='checkbox' id='bandera'" + (estado.marcas[estado.indice] ? " checked" : "") + "> Marcar para revisar</label>" +
               "<div class='acciones'>" +
@@ -760,7 +813,7 @@
       return "<details" + (d.bien ? "" : " open") + ">" +
         "<summary><span class='pill " + (d.bien ? "ok" : "mal") + "'>" + (d.bien ? "Bien" : "Mal") + "</span> " +
         (i + 1) + ". GenAI-" + escapar(p.lo) + " · " + p.k + " · " + p.puntos + " pt · su respuesta: " + suyas + " · correcta: " + buenas + "</summary>" +
-        "<p>" + escapar(p.enunciado) + "</p>" + htmlLista(p) + "<ol class='repaso-ops'>" + ops + "</ol>" + cierre + "</details>";
+        "<p>" + escapar(p.enunciado) + "</p>" + htmlLista(p) + "<ol class='repaso-ops'>" + ops + "</ol>" + cierre + htmlSilabo(p.lo, p.k) + "</details>";
     }).join("");
 
     var cierreTxt = porTiempo ? "el tiempo se agotó" : (intento.incompleto ? "terminado sin completar" : "entregado");

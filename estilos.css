@@ -135,6 +135,19 @@ summary { cursor: pointer; }
 .repaso-ops .buena { background: #e5f6ee; }
 .repaso-ops .mala { background: #fdecec; }
 .porque { background: var(--fondo); border-radius: 8px; padding: 0.6rem 0.7rem; }
+details.silabo, details.silabo-completo {
+  margin: 0.85rem 0 0.2rem;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: var(--papel);
+  padding: 0.45rem 0.75rem 0.55rem;
+}
+details.silabo summary, details.silabo-completo summary { font-weight: 700; color: var(--azul); }
+details.silabo p, details.silabo-completo p { margin: 0.45rem 0; }
+.enlace-silabo { color: var(--azul); font-weight: 650; }
+.indice-silabo { list-style: none; padding: 0; margin: 0.3rem 0 0.6rem; }
+.indice-silabo li { margin: 0.28rem 0; }
+.grupo-silabo ul { list-style: none; padding: 0 0 0.2rem 0.8rem; margin: 0.2rem 0 0.4rem; }
 
 @media (max-width: 800px) {
   .cuerpo { grid-template-columns: 1fr; }

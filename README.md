@@ -13,7 +13,7 @@ Los formatos de pregunta siguen los del examen de muestra: una opción correcta 
 
 Durante el examen, la barra superior tiene dos botones. **Pausar** detiene el tiempo y guarda el examen en el navegador; desde la pantalla de inicio se puede continuar después, con el tiempo que quedaba, o descartarlo. **Terminar** cierra el examen en ese momento: se corrige lo respondido y el intento queda en el historial como incompleto.
 
-Cada intento entregado queda en el historial de la pantalla de inicio con el examen completo. Con «Revisar» se vuelve a abrir: preguntas, respuestas dadas, respuestas correctas y, en cada opción, por qué es correcta o por qué no lo es. En el examen de prueba esa misma justificación aparece al confirmar la respuesta.
+Cada intento entregado queda en el historial de la pantalla de inicio con el examen completo. Con «Revisar» se vuelve a abrir: preguntas, respuestas dadas, respuestas correctas y, en cada opción, por qué es correcta o por qué no lo es. En el examen de prueba esa misma justificación aparece al confirmar la respuesta. En ambos casos, «Ver en el sílabo» abre la página del programa de estudios oficial (CT-GenAI v1.0, español) donde está ese objetivo de aprendizaje. En el inicio, «Sílabo completo para repaso» lista los capítulos y los objetivos con su página. El texto del sílabo no se copia: sigue en el PDF del ISTQB.
 
 ## Cómo usarlo en el celular, el iPad o el computador
 
