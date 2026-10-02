@@ -36,7 +36,7 @@ git push -u origin main
 
 En el iPhone o el iPad, abre esa dirección con Safari, pulsa Compartir y elige **Añadir a pantalla de inicio**. Queda con icono y se abre a pantalla completa. En Android, Chrome ofrece «Instalar aplicación» o «Añadir a pantalla principal».
 
-El historial de intentos y el examen en pausa se guardan en el navegador de cada dispositivo. Lo que rindes en el teléfono no aparece en el computador.
+El historial de intentos y el examen en pausa se guardan en el navegador de cada dispositivo. En «Intentos anteriores» puedes **Descargar historial** (un archivo JSON, con el examen en pausa si hay uno) y, en el otro aparato, **Traer historial**. Los intentos que ya estaban no se duplican y se conservan los 20 más recientes.
 
 ## Cómo abrirlo en local
 

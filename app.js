@@ -132,19 +132,25 @@
     return { puntos: puntos, detalle: detalle, aprobado: puntos >= CORTE };
   }
 
-  function guardarHistorial(item) {
-    var h = leerHistorial();
-    h.unshift(item);
-    h = h.slice(0, 20);
+  function escribirHistorial(lista) {
+    var h = lista.slice(0, 20);
     /* Cada intento guarda el examen completo; si el navegador se queda sin espacio, se sueltan los más antiguos. */
     while (h.length) {
       try {
         localStorage.setItem(CLAVE_HIST, JSON.stringify(h));
-        return;
+        return h.length;
       } catch (e) {
         h.pop();
       }
     }
+    try { localStorage.removeItem(CLAVE_HIST); } catch (e) {}
+    return 0;
+  }
+
+  function guardarHistorial(item) {
+    var h = leerHistorial();
+    h.unshift(item);
+    escribirHistorial(h);
   }
 
   function leerHistorial() {
@@ -166,6 +172,116 @@
 
   function contarRespondidas(respuestas) {
     return respuestas.filter(function (r) { return r && r.length; }).length;
+  }
+
+  function intentoValido(h) {
+    return !!(h && typeof h.fecha === "string" && typeof h.puntos === "number" && Array.isArray(h.preguntas) && Array.isArray(h.respuestas));
+  }
+
+  function firmaIntento(h) {
+    return JSON.stringify([h.fecha, h.modo, h.puntos, !!h.incompleto, !!h.porTiempo, h.minutos, h.respuestas]);
+  }
+
+  function fechaMs(fecha) {
+    var m = String(fecha || "").match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})(?:\D+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if (!m) return 0;
+    return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)).getTime() || 0;
+  }
+
+  function pausadoValido(p) {
+    return !!(p && p.preguntas && p.respuestas && typeof p.restante === "number");
+  }
+
+  function descargarHistorial() {
+    var hist = leerHistorial();
+    var pausado = leerPausado();
+    if (!hist.length && !pausado) {
+      window.alert("No hay intentos ni un examen en pausa en este navegador.");
+      return;
+    }
+    var datos = {
+      tipo: "ctgenai-historial",
+      version: 1,
+      exportado: new Date().toISOString(),
+      historial: hist,
+      pausado: pausado
+    };
+    var blob = new Blob([JSON.stringify(datos)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "ctgenai-historial-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  }
+
+  function traerHistorial(texto) {
+    var datos;
+    try { datos = JSON.parse(texto); }
+    catch (e) {
+      window.alert("No se pudo leer el archivo. Elige el JSON descargado desde el simulador.");
+      return;
+    }
+    if (!datos || datos.tipo !== "ctgenai-historial" || !Array.isArray(datos.historial)) {
+      window.alert("Ese archivo no es un historial del simulador CT-GenAI.");
+      return;
+    }
+    var entrantes = datos.historial.filter(intentoValido);
+    var local = leerHistorial();
+    var firmasLocal = {};
+    local.forEach(function (h) { firmasLocal[firmaIntento(h)] = true; });
+    var añadidos = entrantes.filter(function (h) { return !firmasLocal[firmaIntento(h)]; }).length;
+    var vistos = {};
+    var unidos = [];
+    local.concat(entrantes).forEach(function (h) {
+      var firma = firmaIntento(h);
+      if (vistos[firma]) return;
+      vistos[firma] = true;
+      unidos.push(h);
+    });
+    unidos.sort(function (a, b) { return fechaMs(b.fecha) - fechaMs(a.fecha); });
+    var sobraron = unidos.length > 20;
+    var guardados = escribirHistorial(unidos);
+    if (unidos.length && !guardados) {
+      window.alert("No se pudo guardar el historial: el navegador no tiene espacio.");
+      return;
+    }
+
+    var avisoPausa = "";
+    if (pausadoValido(datos.pausado)) {
+      var actual = leerPausado();
+      var misma = actual && JSON.stringify(actual.preguntas) === JSON.stringify(datos.pausado.preguntas) && JSON.stringify(actual.respuestas) === JSON.stringify(datos.pausado.respuestas);
+      if (!actual) {
+        try {
+          localStorage.setItem(CLAVE_PAUSA, JSON.stringify(datos.pausado));
+          avisoPausa = " También se trajo el examen en pausa.";
+        } catch (e) {
+          avisoPausa = " No se pudo guardar el examen en pausa: falta espacio.";
+        }
+      } else if (!misma) {
+        if (window.confirm("En este dispositivo ya hay un examen en pausa. ¿Reemplazarlo por el que viene en el archivo?")) {
+          try {
+            localStorage.setItem(CLAVE_PAUSA, JSON.stringify(datos.pausado));
+            avisoPausa = " Se reemplazó el examen en pausa por el del archivo.";
+          } catch (e) {
+            avisoPausa = " No se pudo guardar el examen en pausa: falta espacio.";
+          }
+        } else {
+          avisoPausa = " Se conservó el examen en pausa de este dispositivo.";
+        }
+      }
+    }
+
+    pantallaInicio();
+    var msg = añadidos
+      ? "Se añadieron " + añadidos + (añadidos === 1 ? " intento" : " intentos") + " al historial de este dispositivo."
+      : (entrantes.length ? "Esos intentos ya estaban en este dispositivo. No se duplicaron." : "El archivo no traía intentos nuevos.");
+    if (sobraron) msg += " Se conservan los 20 más recientes.";
+    var ignorados = datos.historial.length - entrantes.length;
+    if (ignorados) msg += " Se ignoraron " + ignorados + (ignorados === 1 ? " registro incompleto." : " registros incompletos.");
+    window.alert(msg + avisoPausa);
   }
 
   function formatear(seg) {
@@ -270,8 +386,14 @@
           "</button>" +
         "</div>" +
         "<h2>Intentos anteriores</h2>" +
+        "<p class='nota-hist'>El historial se guarda en este navegador. Para verlo en el celular, la tablet o el computador, descárgalo y tráelo en el otro aparato. El archivo también incluye el examen en pausa, si hay uno.</p>" +
+        "<div class='acciones'>" +
+          "<button type='button' id='descargar-hist'>Descargar historial</button>" +
+          "<button type='button' id='traer-hist'>Traer historial</button>" +
+        "</div>" +
         (hist.length ? "<p class='nota-hist'>Pulsa «Revisar» para volver a ver el examen completo de ese intento, con tus respuestas, las correctas y la explicación de cada pregunta.</p>" : "") +
         "<ul class='historial'>" + filas + "</ul>" +
+        "<input type='file' id='archivo-hist' accept='application/json,.json' hidden>" +
       "</section>"
     );
     mostrar(nodo);
@@ -299,6 +421,22 @@
     }
     nodo.querySelector("#modo-real").addEventListener("click", function () { arrancarNuevo("real"); });
     nodo.querySelector("#modo-prueba").addEventListener("click", function () { arrancarNuevo("prueba"); });
+    nodo.querySelector("#descargar-hist").addEventListener("click", descargarHistorial);
+    var archivo = nodo.querySelector("#archivo-hist");
+    nodo.querySelector("#traer-hist").addEventListener("click", function () { archivo.click(); });
+    archivo.addEventListener("change", function () {
+      var file = archivo.files && archivo.files[0];
+      archivo.value = "";
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) {
+        window.alert("El archivo es demasiado grande para ser un historial del simulador.");
+        return;
+      }
+      var lector = new FileReader();
+      lector.onload = function () { traerHistorial(String(lector.result || "")); };
+      lector.onerror = function () { window.alert("No se pudo leer el archivo."); };
+      lector.readAsText(file);
+    });
   }
 
   function pausar() {
