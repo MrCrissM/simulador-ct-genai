@@ -807,7 +807,290 @@
       "Una charla seguida de una prohibición no deja practicar.",
       "Las herramientas no autorizadas son IA en la sombra, no un plan de formación.",
       "Sustituir al equipo en el piloto elimina a quien debía aprender."
+    ],
+    /* 114 1.1.1 cartas. Correcta 3 */
+    [
+      "Un reglamento que fija cada frase y no crea texto nuevo es IA simbólica.",
+      "Elegir rasgos a mano antes de entrenar es aprendizaje automático clásico.",
+      "Clasificar multas ya existentes no genera cartas nuevas.",
+      "Redactar cartas que no se han enviado, imitando el archivo, es IA generativa."
+    ],
+    /* 115 ventana. Correcta 1 */
+    [
+      "La ventana no resume páginas que no se incluyeron.",
+      "Lo que no cabe en el cupo de tokens queda fuera y puede perderse.",
+      "La ventana no ordena los artículos por fecha.",
+      "No obliga a un análisis carácter a carácter."
+    ],
+    /* 116 tokenización. Correcta 1 */
+    [
+      "Pasar la ficha a un vector es una incrustación, no tokenizar.",
+      "Tokenizar es partir el texto en las piezas que el modelo usa para leer y escribir.",
+      "Redactar la recomendación es generar, no trocear.",
+      "Elegir el siguiente libro es la predicción del modelo, no la preparación del texto."
+    ],
+    /* 117 razonamiento. Correcta 1 */
+    [
+      "El fundacional sin ajuste no está pensado para seguir un encargo de varios pasos.",
+      "Un cálculo que encadena reglas se beneficia de un modelo de razonamiento.",
+      "Ajustar solo el formato de una tabla no resuelve el cálculo.",
+      "El tipo de modelo sí cambia cómo aborda un problema largo."
+    ],
+    /* 118 multimodal. Correcta 1 */
+    [
+      "Un modelo solo de texto no recibe la voz ni la captura como tales.",
+      "Audio o imagen junto con texto piden un modelo multimodal.",
+      "Las reglas de la interfaz no sustituyen la captura ni la nota de voz.",
+      "Ampliar la ventana no hace que un modelo de texto vea una imagen."
+    ],
+    /* 119 1.2.1 DOS. Correctas 0 y 1 */
+    [
+      "Marcar contradicciones en las normas es un encargo realista.",
+      "Generar combinaciones y límites de prueba también lo es.",
+      "Cerrar un defecto sin lectura delega el juicio humano.",
+      "El modelo no garantiza que un plazo inventado sea válido.",
+      "Desplegar el parche sin revisión no es una capacidad de apoyo a la prueba."
+    ],
+    /* 120 aplicación. Correcta 1 */
+    [
+      "La charla abierta es un chatbot.",
+      "Protocolo, regla recuperada y plantilla fija describen una aplicación de prueba.",
+      "Cambiar el icono no crea un flujo.",
+      "La agenda sin modelo no usa IA generativa."
+    ],
+    /* 121 datos. Correcta 0 */
+    [
+      "El archivo de movimientos es el material que hay que analizar: datos de entrada.",
+      "No describe el fondo ni el equipo. Describe un archivo concreto.",
+      "No prohíbe otros días. Aporta el material del día pedido.",
+      "No dice cómo debe presentarse la respuesta."
+    ],
+    /* 122 restricción. Correcta 2 */
+    [
+      "No aporta un archivo ni un caso para analizar.",
+      "No fija columnas ni una lista.",
+      "Deja fuera tarifas que la ordenanza no contempla: es una restricción.",
+      "No asigna un rol a quien pregunta."
+    ],
+    /* 123 encadenamiento. Correcta 1 */
+    [
+      "Cada prompt de la cadena no es un ejemplo de muestra.",
+      "Sedes, luego horarios, luego conflictos, pasando la salida, es encadenamiento.",
+      "Nadie pidió que el modelo reescribiera el prompt.",
+      "Un solo prompt no parte la tarea en tres pasos."
+    ],
+    /* 124 sistema y usuario. Correcta 1 */
+    [
+      "La regla fija no es el encargo de un turno, y el examen de hoy no es la política permanente.",
+      "Lo que permanece es el prompt de sistema. El examen de este turno es el de usuario.",
+      "Que una persona las escriba no las convierte a las dos en prompt de usuario.",
+      "El examen no es el formato de la respuesta, y la regla de idioma no es el dato del curso."
+    ],
+    /* 125 análisis. Correcta 1 */
+    [
+      "Buscar defectos de redacción no genera condiciones priorizadas ni huecos.",
+      "Condiciones, luego riesgo, luego cobertura, es el análisis con encadenamiento.",
+      "Un resumen literario no es el conjunto de condiciones de prueba.",
+      "Generar el sistema de cobro no analiza la prueba de la póliza."
+    ],
+    /* 126 pocos ejemplos. Correcta 1 */
+    [
+      "Sin los escenarios aceptados no hay ejemplos que imitar.",
+      "Mostrar los dos escenarios y pedir el mismo estilo es pocos ejemplos.",
+      "Reescribir el prompt es meta-prompting y deja fuera los ejemplos.",
+      "Un prompt por palabra no usa los escenarios como guía."
+    ],
+    /* 127 regresión. Correcta 0 */
+    [
+      "Nombrar guiones, contrastar y proponer el parche es el análisis de la regresión.",
+      "El correo de la release no toca la suite.",
+      "Borrar la suite y escribir otra aplicación no mantiene la regresión.",
+      "El tamaño del diff no autoriza a saltarse la regresión."
+    ],
+    /* 128 monitorización. Correcta 0 */
+    [
+      "Avance, desvío y riesgos abiertos, con los datos del ciclo, es monitorizar y controlar.",
+      "Casos de una historia que no está en el ciclo son diseño, no control.",
+      "Reescribir la agenda no lee el ciclo.",
+      "Definir una palabra no usa los resultados."
+    ],
+    /* 129 oráculo. Correcta 1 */
+    [
+      "Sin ejemplos el modelo inventa un resultado que nadie puede confirmar.",
+      "Las rutas ya aceptadas sirven de pocos ejemplos para imitar el criterio del experto.",
+      "Trocear por calles no aporta cuando el criterio ya está en los ejemplos.",
+      "Quitar el oráculo no resuelve la falta de resultado esperado."
+    ],
+    /* 130 métricas. Correcta 0 */
+    [
+      "Fallar al lanzar el guion es tasa de éxito. Repetir el mismo pasillo es falta de diversidad.",
+      "Los tokens y la hora no dicen si el guion cubre pasillos ni si se ejecuta.",
+      "La longitud en líneas no mide ejecución ni variedad.",
+      "La factura no es una métrica de cobertura."
+    ],
+    /* 131 afinar formato. Correcta 1 */
+    [
+      "Que el error sea siempre el mismo no lo hace correcto.",
+      "Revisar prompt y ejemplos, fijar DD/MM y comparar es el ciclo para entender la causa.",
+      "Más temperatura no explica por qué el formato sale mal.",
+      "Cambiar de aplicación evita el diagnóstico."
+    ],
+    /* 132 alucinación. Correcta 2 */
+    [
+      "No hay una suma que fallara.",
+      "Preferir un género sería un sesgo. Aquí se inventa un identificador.",
+      "Afirmar un ISBN que no está en el catálogo ni en la pregunta es una alucinación.",
+      "La ventana no explica un dato inventado."
+    ],
+    /* 133 identificar. Correcta 1 */
+    [
+      "El pago inventado es una alucinación, pero la frase sobre nacionalidades no está en la especificación: no es un dato válido.",
+      "Hay una alucinación (el pago) y un sesgo (la generalización sobre nacionalidades).",
+      "No se describe un fallo al sumar turnos.",
+      "Ninguna de las dos frases completa el encargo."
+    ],
+    /* 134 entrada clara. Correcta 0 */
+    [
+      "Las columnas dicen qué debe aparecer y bajan la ambigüedad.",
+      "El formato de entrada no abarata ni sustituye un ajuste fino.",
+      "La ficha no reemplaza el reglamento como fuente.",
+      "Una entrada más cerrada no busca respuestas más creativas."
+    ],
+    /* 135 temperatura. Correcta 1 */
+    [
+      "Subir la temperatura ensancha la variación.",
+      "Bajar la temperatura concentra la probabilidad y las corridas se parecen más.",
+      "Borrar el prompt de sistema quita una regla estable.",
+      "El verso no controla la distribución de probabilidad."
+    ],
+    /* 136 privacidad incorrecta. Correcta 2 */
+    [
+      "Un chat público con expedientes reales sí puede sacarlos de la organización.",
+      "Un prompt puede llevar más datos de los necesarios.",
+      "Que el modelo invente no demuestra que ese dato sea la ficha de una persona real. Esta afirmación es la incorrecta.",
+      "Acordar qué puede salir del entorno es un control de privacidad."
+    ],
+    /* 137 envenenamiento. Correcta 0 */
+    [
+      "Alterar las actas con las que se ajusta el modelo es envenenamiento.",
+      "No se está sonsacando una clave durante una pregunta.",
+      "No se describe un guion con una llamada oculta.",
+      "El fallo viene de datos de ajuste falseados, no de un invento aislado."
+    ],
+    /* 138 manipulación de solicitud. Correcta 1 */
+    [
+      "El entrenamiento no se modificó.",
+      "Una entrada trucada en el momento de uso que tuerce la salida es manipulación de la solicitud.",
+      "No se buscan datos confidenciales del entrenamiento.",
+      "No es un ajuste legítimo: la captura altera el veredicto."
+    ],
+    /* 139 mitigar privacidad. Correcta 0 */
+    [
+      "Sustituir los datos reales por sintéticos antes de enviarlos reduce la exposición.",
+      "Un chat público aumenta el riesgo.",
+      "Quitar el cifrado deja el envío más expuesto.",
+      "El acceso directo a la base de alumnos amplía el riesgo."
+    ],
+    /* 140 energía. Correcta 0 */
+    [
+      "Generar vídeo exige mucho más cómputo que un informe en texto.",
+      "Las mismas palabras del prompt no igualan el coste de un vídeo.",
+      "Leer el texto en voz alta no es la comparación de consumo del modelo.",
+      "Durar más no reduce las emisiones."
+    ],
+    /* 141 DOS referencias. Correctas 0 y 1 */
+    [
+      "El Reglamento europeo de IA es la referencia que clasifica usos según el riesgo legal.",
+      "El marco NIST es la guía de Estados Unidos para gestionar riesgos de IA.",
+      "ISO/IEC 25010 es calidad de producto, no esa guía ni esa norma legal.",
+      "ISO/IEC/IEEE 29119-3 es documentación de prueba.",
+      "El glosario del nivel fundamentos no clasifica el riesgo del uso ni gestiona la IA."
+    ],
+    /* 142 back-end. Correcta 0 */
+    [
+      "El back-end junta la entrada con lo recuperado y prepara el prompt.",
+      "El front-end muestra la pantalla. No arma el prompt.",
+      "La autenticación controla quién entra.",
+      "El posprocesamiento trabaja la salida del modelo."
+    ],
+    /* 143 RAG. Correcta 0 */
+    [
+      "Recuperar fragmentos, unirlos al prompt y generar es RAG.",
+      "Reentrenar con las normas es ajuste fino, no recuperación.",
+      "Generar primero y borrar el almacén invierte el proceso.",
+      "Usar solo la memoria del entrenamiento no consulta la base."
+    ],
+    /* 144 agente. Correcta 0 */
+    [
+      "Lo rutinario avanza solo y el importe alto se detiene para una persona.",
+      "El objetivo no obliga a confirmar también lo trivial.",
+      "El agente sí puede usar la hoja de movimientos como herramienta.",
+      "Tener un objetivo no elimina la confirmación donde el riesgo sube."
+    ],
+    /* 145 ajuste fino incorrecta. Correcta 2 */
+    [
+      "El ajuste fino sigue entrenando un modelo que ya existía.",
+      "Con buenos datos puede mejorar en ese dominio.",
+      "No queda exacto ni desaparece la revisión. Esta afirmación es la incorrecta.",
+      "Datos pobres o sesgados se trasladan a la salida."
+    ],
+    /* 146 operaciones. Correcta 0 */
+    [
+      "Desplegar, vigilar y cambiar con control es el objetivo de las operaciones del modelo en uso.",
+      "Elegir características a mano es de otro tipo de modelo.",
+      "El registro de entrenamiento no sustituye el informe de prueba.",
+      "Publicarlo en abierto quita el control del cambio."
+    ],
+    /* 147 sombra. Correcta 0 */
+    [
+      "Un chat no aprobado con datos del trabajo puede incumplir la política de datos.",
+      "La sombra no garantiza el cumplimiento. Lo pone en riesgo.",
+      "Que sea gratuito no retiene los datos dentro de la organización.",
+      "La sombra es el uso no autorizado, no el lugar donde se entrenó el modelo."
+    ],
+    /* 148 estrategia. Correcta 0 */
+    [
+      "Definir usos permitidos y datos que pueden entrar es un aspecto clave de la estrategia.",
+      "Un certificado por cada modelo del mercado no es ese aspecto.",
+      "Volcar todos los registros no es una política de datos.",
+      "Las métricas del aprendizaje supervisado clásico no definen la estrategia de este uso."
+    ],
+    /* 149 selección. Correcta 0 */
+    [
+      "Calidad en la tarea, coste y lugar de los datos son criterios de selección.",
+      "El máximo de parámetros no decide solo.",
+      "La documentación y el soporte también cuentan. El tamaño no basta.",
+      "Poder ejecutarlo dentro de la red puede ser justamente lo que se necesita."
+    ],
+    /* 150 fase. Correcta 0 */
+    [
+      "Curso y experimentos con datos ficticios, sin cambiar el proceso, son descubrimiento.",
+      "Uso e iteración implica integrar y medir el proceso, y aquí el proceso no cambió.",
+      "El curso no obliga todavía a cerrar el caso de uso definitivo.",
+      "La fase no depende de haber comprado una licencia."
+    ],
+    /* 151 habilidad. Correcta 0 */
+    [
+      "Escribir el prompt y contrastar la salida con la especificación es la competencia pedida.",
+      "Recitar la arquitectura interna no hace falta para probar con el modelo.",
+      "El estilo de la redacción no sustituye la comparación con la especificación.",
+      "Más llamadas no reemplazan el trabajo con el equipo."
+    ],
+    /* 152 equipo. Correcta 0 */
+    [
+      "Práctica guiada, de lo simple a lo fino, y una puesta en común desarrollan la competencia.",
+      "Pasar al día siguiente a usarla en todo, sin guía, no construye la habilidad.",
+      "Cuentas personales con datos del proyecto son IA en la sombra.",
+      "Sustituir al equipo elimina a quien debía aprender."
+    ],
+    /* 153 roles. Correcta 0 */
+    [
+      "Quien prueba guía y verifica. Quien dirige gestiona e incorpora estrategia, riesgos y competencias.",
+      "Quien dirige no pasa a programar el modelo ni abandona la gestión.",
+      "Quien prueba sigue revisando. El modelo no cubre el criterio por su cuenta.",
+      "Los roles no se sustituyen por el modelo."
     ]
+
   ];
 
   if (!window.BANCO || window.BANCO.length !== R.length) {

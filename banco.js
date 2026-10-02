@@ -1432,6 +1432,449 @@
         "Sustituyendo al equipo por el modelo en cuanto hay un piloto."
       ],
       [0],
-      "La capacidad se construye practicando y compartiendo, de lo simple a lo más fino. Una charla aislada, la IA en la sombra o reemplazar al equipo no forman esa competencia.")
+      "La capacidad se construye practicando y compartiendo, de lo simple a lo más fino. Una charla aislada, la IA en la sombra o reemplazar al equipo no forman esa competencia."),
+
+    q("1.1.1", "K1", 1, 1,
+      "El ayuntamiento quiere cartas de multa que nunca se han enviado, con el tono de las que ya archivó. ¿Qué técnica lo describe?",
+      [
+        "IA simbólica: un reglamento fija cada frase y no se crea nada nuevo.",
+        "Aprendizaje automático clásico: una persona marcó antes los rasgos de cada carta.",
+        "Aprendizaje profundo: solo clasifica las multas que ya existen.",
+        "IA generativa: redacta cartas nuevas imitando el archivo."
+      ],
+      [3],
+      "Redactar cartas que no existían, parecidas a las del archivo, es crear datos nuevos. Las otras tres no generan ese contenido."),
+
+    q("1.1.2", "K2", 1, 1,
+      "Una ordenanza de 200 páginas no entra en la ventana de contexto. ¿Qué consecuencia es la correcta?",
+      [
+        "El modelo la resume sola, aunque las páginas no se hayan incluido.",
+        "Las páginas que no caben quedan fuera y pueden perderse artículos necesarios.",
+        "La ventana ordena los artículos por fecha y por eso rechaza los antiguos.",
+        "La ventana obliga a leer la ordenanza carácter a carácter."
+      ],
+      [1],
+      "La ventana solo admite un cupo de tokens. Lo que no entra no se considera. No resume archivos ausentes ni ordena por fecha."),
+
+    q("1.1.2", "K2", 1, 1,
+      "Al preparar el catálogo de una biblioteca para un modelo, ¿qué describe la tokenización?",
+      [
+        "Convertir cada ficha en un vector numérico para buscar por significado.",
+        "Partir el texto de las fichas en piezas con las que el modelo lee y escribe.",
+        "Redactar la recomendación de lectura que verá la persona.",
+        "Decidir el siguiente libro según la ficha anterior."
+      ],
+      [1],
+      "Tokenizar es trocear el texto. El vector es una incrustación, redactar es generar y elegir el siguiente libro es la predicción, no el troceo."),
+
+    q("1.1.3", "K2", 1, 1,
+      "Hay que calcular un impuesto en cuatro pasos encadenados, con reglas que se citan unas a otras. ¿Qué modelo encaja mejor?",
+      [
+        "Uno fundacional, sin ajuste, porque basta con completar frases.",
+        "Uno de razonamiento, porque el cálculo pide varios pasos enlazados.",
+        "Uno ajustado por instrucciones solo para copiar una tabla fija, sin calcular.",
+        "Cualquiera de los tres: el tipo no cambia cómo se resuelve un cálculo largo."
+      ],
+      [1],
+      "Un cálculo de varios pasos se beneficia de un modelo de razonamiento. El fundacional no está preparado para seguir el encargo, y un ajuste de formato no resuelve la cadena."),
+
+    q("1.1.4", "K2", 1, 1,
+      "Llega una nota de voz del fallo y, además, la captura de la pantalla. ¿Qué hace falta para usar las dos a la vez?",
+      [
+        "Un modelo solo de texto: la nota de voz ya es lenguaje.",
+        "Un modelo multimodal, capaz de tomar audio o imagen junto con el texto.",
+        "Un modelo simbólico: la captura se sustituye por reglas de la interfaz.",
+        "Ampliar la ventana de contexto de un modelo de texto hasta que «vea» la imagen."
+      ],
+      [1],
+      "Voz e imagen no son texto. Hace falta un modelo multimodal. Ni la ventana ni las reglas simbólicas convierten esa entrada."),
+
+    q("1.2.1", "K2", 1, 2,
+      "En la prueba de una biblioteca digital, ¿qué DOS encargos son realistas para un modelo de lenguaje?",
+      [
+        "Marcar normas de préstamo que se contradicen entre sí.",
+        "Generar plazos límite y combinaciones de socios y tipos de obra.",
+        "Cerrar el defecto de préstamo sin que nadie lea el caso.",
+        "Garantizar que cada plazo inventado es legalmente válido.",
+        "Desplegar solo el parche del catálogo en producción."
+      ],
+      [0, 1],
+      "Señalar contradicciones y proponer datos de prueba son capacidades de apoyo. Cerrar sin lectura, dar por válida la salida o desplegar sin revisión no lo son."),
+
+    q("1.2.2", "K2", 1, 1,
+      "¿Cuál es una aplicación de prueba y no un chatbot?",
+      [
+        "Un chat donde cada persona pregunta lo que quiera sobre citas médicas.",
+        "Un flujo que toma el protocolo de la cita, recupera la regla de aviso y devuelve casos en una plantilla.",
+        "El chat general del hospital con otro icono.",
+        "La agenda en papel, sin modelo."
+      ],
+      [1],
+      "El flujo con entrada definida, regla recuperada y plantilla es una aplicación de prueba. La charla libre, el cambio de icono y la agenda sin modelo no lo son."),
+
+    q("2.1.1", "K2", 1, 1,
+      "En un prompt sobre el inventario de un almacén, una línea dice: «Usa el archivo de movimientos de ayer». ¿Qué parte es?",
+      [
+        "Datos de entrada: es el material que hay que analizar.",
+        "Contexto: describe el humor del equipo de almacén.",
+        "Restricción: prohíbe mirar otros días.",
+        "Formato de salida: obliga a una tabla de tres columnas."
+      ],
+      [0],
+      "El archivo es el material del análisis, o sea datos de entrada. No es el fondo, ni un límite, ni la forma de la respuesta."),
+
+    q("2.1.1", "K2", 1, 1,
+      "Un prompt de una tarjeta de transporte dice: «No propongas tarifas que la ordenanza no liste». ¿Qué parte es?",
+      [
+        "Datos de entrada.",
+        "Formato de salida.",
+        "Una restricción: deja fuera lo que la ordenanza no contempla.",
+        "El rol del probador."
+      ],
+      [2],
+      "Limitar lo que se puede proponer es una restricción. No aporta el material, no fija la forma de la respuesta y no nombra un rol."),
+
+    q("2.1.2", "K2", 1, 1,
+      "Quieren partir la generación de partidos de un torneo en tres prompts (sedes, luego horarios, luego conflictos) y que nadie reescriba el prompt por ellos. ¿Qué técnica es?",
+      [
+        "Pocos ejemplos, porque cada prompt es un ejemplo.",
+        "Encadenamiento: la salida de un paso alimenta al siguiente.",
+        "Meta-prompting: el modelo reescribe el encargo en cada vuelta.",
+        "Sin ejemplos y en un solo prompt, que es lo mismo que encadenar."
+      ],
+      [1],
+      "Partir la tarea en prompts encadenados es encadenamiento. Pocos ejemplos muestran casos, el meta-prompting reescribe el prompt y un solo prompt no es una cadena."),
+
+    q("2.1.3", "K2", 1, 1,
+      "En un asistente de notas escolares, «nunca inventes una calificación y responde en español» está fijo, y cada turno trae el examen de un curso. ¿Qué es cada cosa?",
+      [
+        "Lo fijo es el prompt de usuario y el examen de hoy es el de sistema.",
+        "Lo fijo es el prompt de sistema y el examen de este turno es el de usuario.",
+        "Las dos frases son prompts de usuario, porque las lee una persona.",
+        "El examen es formato de salida y la regla de idioma es un dato de entrada."
+      ],
+      [1],
+      "La regla que permanece es de sistema. El encargo de este turno es de usuario. No se invierten ni se confunden con el formato."),
+
+    q("2.2.1", "K3", 2, 1,
+      "La póliza de un seguro ya está revisada y estable. Hay que sacar condiciones, ordenarlas por el riesgo que indicó el negocio y ver huecos. ¿Qué enfoque aplica?",
+      [
+        "Un prompt único: «busca defectos de redacción en la póliza».",
+        "Encadenar: condiciones desde la póliza, luego prioridad con el riesgo, luego huecos de cobertura.",
+        "Pedir solo un resumen literario de la póliza.",
+        "Generar el sistema de cobro a partir de la póliza."
+      ],
+      [1],
+      "El análisis pedido es condiciones, prioridad y cobertura. El encadenamiento los separa. Buscar defectos de estilo, resumir o generar el sistema no es ese encargo."),
+
+    q("2.2.2", "K3", 2, 1,
+      "Hay dos escenarios Gherkin ya aceptados de reserva de sala y una historia nueva de reserva de taquilla. ¿Qué encargo aplica pocos ejemplos?",
+      [
+        "Pedir escenarios sin mostrar los dos ya aceptados.",
+        "Mostrar los dos escenarios aceptados y pedir otros, en el mismo estilo, para la taquilla.",
+        "Pedir al modelo que reescriba el prompt y no usar los escenarios.",
+        "Partir la historia en diez prompts, uno por palabra del criterio."
+      ],
+      [1],
+      "Pocos ejemplos enseña casos ya buenos para fijar estilo y contenido. Sin mostrarlos, reescribir el prompt o trocear por palabras no es esa técnica."),
+
+    q("2.2.3", "K3", 2, 1,
+      "Cambió la franquicia de un seguro. El borrador de prompt solo dice «comenta la regresión». ¿Qué ajuste lo acerca a una regresión automatizada?",
+      [
+        "Pedir qué guiones tocan la franquicia, contrastarlos con el resultado obtenido y proponer el parche del guion.",
+        "Pedir un correo de felicitación por la release.",
+        "Pedir que borre la suite y escriba otra aplicación.",
+        "Pedir que no regrese nada si el diff tiene pocas líneas."
+      ],
+      [0],
+      "Hay que nombrar los guiones afectados, el contraste y la actualización. El correo, rehacer la aplicación o saltarse la regresión por el tamaño del diff no analizan la suite."),
+
+    q("2.2.4", "K3", 2, 1,
+      "El ciclo de una app de citas lleva tres días. Gerencia quiere saber si van tarde. ¿Qué prompt es de monitorización y control?",
+      [
+        "Con los resultados del ciclo, resume avance, desvío frente al plan y riesgos que siguen abiertos.",
+        "Inventa casos de una historia que aún no entra en este ciclo.",
+        "Reescribe el código de la agenda.",
+        "Define la palabra métrica, sin usar los números del ciclo."
+      ],
+      [0],
+      "Monitorizar usa los datos del ciclo para avance, desvío y riesgo. Los otros encargos no leen ese ciclo."),
+
+    q("2.2.5", "K3", 2, 1,
+      "Una función recomienda rutas y nadie puede decir el resultado correcto de antemano. Hay cinco rutas que un experto ya dio por buenas. ¿Qué técnica encaja?",
+      [
+        "Sin ejemplos: que el modelo invente el resultado esperado.",
+        "Pocos ejemplos, con esas rutas buenas, para imitar el criterio del experto.",
+        "Encadenar veinte pasos, uno por calle, aunque el experto ya dejó el criterio cerrado.",
+        "Meta-prompting para que el modelo decida que el oráculo no hace falta."
+      ],
+      [1],
+      "Cuando el oráculo es difícil y ya hay ejemplos aceptados, pocos ejemplos trasladan ese criterio. Inventar el resultado, trocear de más o borrar el oráculo no lo resuelven."),
+
+    q("2.3.1", "K2", 1, 1,
+      "Un modelo genera guiones para el lector de códigos de un almacén. Compilan, pero al lanzarlos fallan, y los casos repiten el mismo pasillo. ¿Qué dos métricas lo ven?",
+      [
+        "Tasa de éxito de ejecución y diversidad de escenarios.",
+        "Número de tokens del prompt y la hora del servidor.",
+        "Solo la longitud del guion, en líneas.",
+        "El coste de la factura, que mide la cobertura de pasillos."
+      ],
+      [0],
+      "Que el guion no llega a ejecutarse es tasa de éxito. Que siempre sea el mismo pasillo es falta de diversidad. Tokens, hora, líneas o la factura no miden eso."),
+
+    q("2.3.2", "K2", 1, 1,
+      "El modelo fecha siempre los casos en MM/DD y el equipo necesita DD/MM, en todas las corridas. ¿Por dónde se entiende la causa?",
+      [
+        "Se acepta el formato: si es consistente, es correcto.",
+        "Se revisa el prompt y los ejemplos, se fija el formato DD/MM y se compara una corrida nueva.",
+        "Se sube la temperatura para que alguna corrida acierte el día.",
+        "Se cambia de aplicación y no se vuelve a mirar el formato."
+      ],
+      [1],
+      "La consistencia no prueba que el formato sea el pedido. Hay que localizar la instrucción o el ejemplo que lo fija, corregirlo y comparar. El azar no lo explica."),
+
+    q("3.1.1", "K1", 1, 1,
+      "El modelo atribuye a un libro un ISBN que no está en el catálogo ni en la pregunta. ¿Cómo se llama eso?",
+      [
+        "Error de razonamiento: falló una suma.",
+        "Sesgo: prefiere un género literario.",
+        "Alucinación: afirma un dato que no está en la entrada ni en los hechos.",
+        "Ventana de contexto demasiado corta."
+      ],
+      [2],
+      "Inventar un identificador que nadie dio es una alucinación. No es un fallo de cálculo, ni un sesgo de género, ni un límite de ventana."),
+
+    q("3.1.2", "K3", 2, 1,
+      "El encargo de una app de turnos cita solo mostrador, reloj y aviso por SMS. El modelo añade «pago con tarjeta» y dice que los turnos de la tarde los atienden mejor ciertas nacionalidades. ¿Qué hay en esa salida?",
+      [
+        "Solo una alucinación: el pago no está en el encargo. La frase sobre nacionalidades es un dato de la especificación.",
+        "Una alucinación (el pago inventado) y un sesgo (la generalización sobre nacionalidades).",
+        "Solo un error de razonamiento al sumar los turnos.",
+        "Nada que señalar: las dos frases completan el encargo."
+      ],
+      [1],
+      "El pago no estaba en el encargo: es una alucinación. La frase sobre nacionalidades no sale de la especificación: es un sesgo. No es un fallo aritmético ni un completado válido."),
+
+    q("3.1.3", "K2", 1, 1,
+      "Al pasar de un párrafo libre a una ficha con columnas (trámite, dato, resultado), las respuestas del modelo traen menos campos inventados. ¿Qué beneficio es el directo?",
+      [
+        "Menos ambigüedad: la entrada dice qué debe aparecer.",
+        "El ajuste fino sale gratis.",
+        "Ya no hace falta incluir el reglamento.",
+        "La salida se vuelve más creativa."
+      ],
+      [0],
+      "Una entrada clara reduce ambigüedades. No abarata el ajuste fino, no sustituye la fuente y no busca originalidad."),
+
+    q("3.1.4", "K1", 1, 1,
+      "¿Qué estrecha la distribución de probabilidad al generar y así baja la variación entre corridas?",
+      [
+        "Subir la temperatura.",
+        "Bajar la temperatura.",
+        "Borrar el prompt de sistema.",
+        "Pedir la respuesta en verso."
+      ],
+      [1],
+      "Bajar la temperatura concentra la probabilidad y las corridas se parecen más. Subirla, quitar el sistema o cambiar el género literario no reducen esa variación de forma controlada."),
+
+    q("3.2.1", "K2", 1, 1,
+      "¿Qué afirmación sobre privacidad al probar con IA generativa es INCORRECTA?",
+      [
+        "Pegar expedientes reales en un chat público puede sacarlos de la organización.",
+        "Un prompt puede incluir más datos sensibles de los que hacían falta para el caso.",
+        "Si el modelo a veces inventa, cada dato sintético es por fuerza la ficha de una persona real.",
+        "Conviene acordar qué datos de prueba pueden salir del entorno."
+      ],
+      [2],
+      "Un dato inventado no demuestra que se haya filtrado una ficha real. Las otras tres sí describen riesgos o controles de privacidad."),
+
+    q("3.2.2", "K2", 1, 1,
+      "Alguien altera las actas con las que se ajusta un modelo que recomienda qué exámenes repetir. En uso, el modelo deja fuera materias enteras. ¿Qué ataque es?",
+      [
+        "Envenenamiento: los datos de ajuste se falsearon.",
+        "Manipulación del contexto: se sonsacaron claves del entrenamiento en una pregunta.",
+        "Generación de código malicioso en un guion de prueba.",
+        "Una alucinación aislada, sin relación con los datos de ajuste."
+      ],
+      [0],
+      "Falsear el conjunto con el que se ajusta el modelo es envenenamiento. No es extraer secretos en una pregunta, ni un guion con puerta trasera, ni un invento suelto."),
+
+    q("3.2.2", "K2", 1, 1,
+      "Durante una sesión, una captura trucada hace que el modelo cambie el veredicto de un caso que estaba bien planteado. ¿Qué vector es?",
+      [
+        "Envenenamiento del entrenamiento.",
+        "Manipulación de la solicitud en el momento de uso.",
+        "Manipulación del contexto para robar datos de entrenamiento.",
+        "Ajuste fino legítimo."
+      ],
+      [1],
+      "Alterar la entrada en ejecución para torcer la salida es manipulación de la solicitud. El entrenamiento no se tocó y no se están extrayendo secretos."),
+
+    q("3.2.3", "K2", 1, 1,
+      "Van a generar casos a partir de boletines de notas reales. ¿Qué medida encaja con la mitigación de privacidad?",
+      [
+        "Sustituir nombres y números por datos sintéticos antes de enviarlos.",
+        "Pegar el boletín completo en un chat público para ir más rápido.",
+        "Quitar el cifrado del envío para ahorrar tiempo.",
+        "Dar al modelo acceso directo a la base de alumnos."
+      ],
+      [0],
+      "Anonimizar o sustituir por datos sintéticos reduce la exposición. El chat público, quitar el cifrado y el acceso directo la aumentan."),
+
+    q("3.3.1", "K2", 1, 1,
+      "El equipo duda entre pedir un vídeo sintético del fallo o un informe en texto del mismo caso. Desde la energía, ¿qué es cierto?",
+      [
+        "El vídeo consume bastante más por el cómputo de generar imagen en movimiento.",
+        "Cuestan lo mismo si el prompt tiene las mismas palabras.",
+        "El texto consume más porque se lee en voz alta.",
+        "El vídeo emite menos CO₂ precisamente por durar más."
+      ],
+      [0],
+      "Generar vídeo es más costoso que generar texto. La longitud del prompt no los iguala y una pieza más larga no emite menos."),
+
+    q("3.4.1", "K1", 1, 2,
+      "Una entidad europea quiere la referencia que clasifica el uso según el riesgo legal, y la guía de Estados Unidos para gestionar riesgos de IA. ¿Cuáles DOS son?",
+      [
+        "El Reglamento europeo de IA.",
+        "El marco de gestión de riesgos de IA del NIST.",
+        "ISO/IEC 25010, calidad de producto.",
+        "ISO/IEC/IEEE 29119-3, documentación de prueba.",
+        "El glosario del nivel fundamentos."
+      ],
+      [0, 1],
+      "El Reglamento europeo clasifica usos por riesgo. El marco NIST es la guía de gestión de riesgos citada por el programa. Las otras tres no ocupan ese papel."),
+
+    q("4.1.1", "K2", 1, 1,
+      "En la app de entradas de un museo, ¿qué componente junta lo que escribe la persona con fichas parecidas recuperadas del almacén?",
+      [
+        "El back-end.",
+        "El front-end, que solo pinta la pantalla.",
+        "La autenticación.",
+        "El posprocesamiento de la salida."
+      ],
+      [0],
+      "El back-end combina la entrada con lo recuperado y arma el prompt. La pantalla muestra, la autenticación controla el acceso y el posprocesamiento actúa después del modelo."),
+
+    q("4.1.2", "K2", 1, 1,
+      "Las normas de una red de transporte están en una base vectorial. Hay que generar casos acordes a la norma vigente. ¿Qué secuencia es RAG?",
+      [
+        "Recuperar los fragmentos pertinentes, unirlos al prompt y entonces generar.",
+        "Reentrenar el modelo con todas las normas y no recuperar nada.",
+        "Generar primero y, si queda mal, borrar la base vectorial.",
+        "Consultar solo la memoria del entrenamiento, sin almacén."
+      ],
+      [0],
+      "RAG recupera, aumenta el prompt y genera. Reentrenar es ajuste fino. Generar a ciegas o ignorar el almacén no es recuperación."),
+
+    q("4.1.3", "K2", 1, 1,
+      "Un agente prepara lotes de datos de almacén y se detiene si el lote supera un importe. Una persona confirma ese lote. ¿Qué lectura es la correcta?",
+      [
+        "El tramo automático gana velocidad y la parada humana cubre el importe alto.",
+        "El objetivo del agente obliga a confirmar también los lotes de un céntimo.",
+        "Un agente no puede leer una hoja de movimientos.",
+        "La confirmación humana se elimina porque el agente ya tiene un objetivo."
+      ],
+      [0],
+      "Autonomía en lo rutinario y supervisión donde el riesgo sube es el reparto descrito. El objetivo no borra la verificación ni impide usar herramientas."),
+
+    q("4.2.1", "K2", 1, 1,
+      "¿Qué afirmación sobre el ajuste fino para una tarea de prueba es INCORRECTA?",
+      [
+        "Parte de un modelo ya entrenado y lo sigue entrenando con datos de la tarea.",
+        "Puede mejorar el desempeño en ese dominio si los datos son buenos.",
+        "Hace desaparecer la necesidad de revisar las salidas, porque el modelo queda exacto.",
+        "Con datos pobres o sesgados, la salida del ajuste también lo será."
+      ],
+      [2],
+      "El ajuste no garantiza exactitud ni quita la revisión. Las otras tres describen bien de qué parte, qué puede mejorar y qué pasa con malos datos."),
+
+    q("4.2.2", "K2", 1, 1,
+      "¿Cuál es el objetivo principal de las operaciones de modelos al usarlos en la prueba?",
+      [
+        "Desplegar, vigilar y cambiar con control los modelos y los prompts que ya están en uso.",
+        "Elegir a mano las características de un clasificador clásico.",
+        "Sustituir el informe de prueba por el registro de entrenamiento.",
+        "Publicar el modelo en abierto para que cualquier persona lo reentrene."
+      ],
+      [0],
+      "Operar es gobernar el modelo en servicio: versión, vigilancia y cambio. Las otras opciones pertenecen a otro tipo de modelo o eliminan el control."),
+
+    q("5.1.1", "K2", 1, 1,
+      "¿Qué afirmación sobre la IA en la sombra es CORRECTA?",
+      [
+        "Usar un chat no aprobado con datos del trabajo puede incumplir la política de datos.",
+        "La IA en la sombra garantiza por sí sola el cumplimiento de esa política.",
+        "Si el chat es gratuito, los datos no salen de la organización.",
+        "Solo es IA en la sombra cuando el modelo se entrenó dentro de la empresa."
+      ],
+      [0],
+      "El riesgo es usar una herramienta no autorizada con datos de la organización. Eso no asegura el cumplimiento, el precio no retiene los datos y el entrenamiento interno no define la sombra."),
+
+    q("5.1.2", "K2", 1, 1,
+      "¿Qué aspecto es clave en una estrategia de IA generativa para la prueba?",
+      [
+        "Definir qué usos están permitidos y qué datos pueden entrar al modelo.",
+        "Exigir un certificado distinto por cada modelo del mercado.",
+        "Volcar en el modelo todos los registros que aparezcan.",
+        "Medir las salidas solo con las métricas del aprendizaje supervisado clásico."
+      ],
+      [0],
+      "La política de uso y de datos es parte de la estrategia. El certificado por modelo, acumular datos sin criterio y las métricas de otro paradigma no lo son."),
+
+    q("5.1.3", "K2", 1, 1,
+      "¿Qué criterio pesa al elegir un modelo para una tarea de prueba concreta?",
+      [
+        "Si la calidad en esa tarea, el coste y el lugar donde se procesan los datos encajan con la organización.",
+        "Elegir siempre el modelo con más parámetros, sin mirar la tarea.",
+        "Ignorar la documentación: el tamaño basta.",
+        "Descartar cualquier modelo que pueda ejecutarse dentro de la red."
+      ],
+      [0],
+      "La elección mira calidad, coste y restricciones de datos. El tamaño solo, la falta de documentación o rechazar lo interno no son el criterio."),
+
+    q("5.1.4", "K1", 1, 1,
+      "Durante dos semanas el equipo asiste a un curso y prueba un modelo con avisos de impuestos ficticios, sin cambiar el proceso. ¿En qué fase está?",
+      [
+        "Descubrimiento.",
+        "Uso e iteración, porque ya hay un curso.",
+        "Inicio y definición del uso, porque el curso obliga a elegir ya el caso definitivo.",
+        "En ninguna: sin comprar una licencia no hay fase."
+      ],
+      [0],
+      "Formarse y experimentar con casos pequeños, sin integrar el proceso, es descubrimiento. Comprar una licencia no es el requisito de esa fase."),
+
+    q("5.2.1", "K2", 1, 1,
+      "¿Qué ejemplo encaja con lo que el probador necesita para trabajar con un modelo?",
+      [
+        "Escribe el prompt, contrasta la salida con la especificación y aparta lo que no se sostiene.",
+        "Recita de memoria las capas internas del modelo.",
+        "Acepta la salida si está bien redactada y no la compara con nada.",
+        "Deja de hablar con el equipo y aumenta el número de llamadas."
+      ],
+      [0],
+      "Hace falta guiar y verificar. La anatomía interna del modelo, fiarse del estilo o aislarse del equipo no son esa competencia."),
+
+    q("5.2.2", "K2", 1, 1,
+      "¿Qué enfoque desarrolla la competencia del equipo para adoptar IA generativa?",
+      [
+        "Práctica guiada en el trabajo real, de encargos simples a técnicas más finas, y una reunión para compartir lo aprendido.",
+        "Un curso el lunes y, el martes, IA generativa en todas las pruebas sin acompañamiento.",
+        "Que cada quien pruebe cuentas personales con datos del proyecto.",
+        "Sustituir al equipo en cuanto termina el primer experimento."
+      ],
+      [0],
+      "La competencia se construye practicando y compartiendo, con progresión. Un salto sin guía, la IA en la sombra o reemplazar al equipo no lo hacen."),
+
+    q("5.2.3", "K2", 1, 1,
+      "Al adoptar IA generativa en la prueba de una mutua, ¿qué reparto de responsabilidades encaja?",
+      [
+        "Quien prueba guía y verifica las salidas. Quien dirige mantiene la gestión e incorpora estrategia, riesgos y competencias.",
+        "Quien dirige pasa a programar el modelo y deja de gestionar.",
+        "Quien prueba deja de revisar, porque el modelo cubre el criterio.",
+        "Los dos roles se sustituyen por el modelo."
+      ],
+      [0],
+      "El cambio reparte guía y verificación en quien prueba, y estrategia y riesgos en quien dirige. No convierte a la dirección en ingeniería del modelo ni borra a las personas.")
+
   ];
 })();

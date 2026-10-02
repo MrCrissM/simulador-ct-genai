@@ -73,12 +73,26 @@
     return window.BANCO.filter(function (p) { return p.lo === lo; });
   }
 
+  function enunciadosRecientes() {
+    var set = {};
+    var hist = leerHistorial();
+    var ultimo = hist[0];
+    if (!ultimo || !ultimo.preguntas) return set;
+    ultimo.preguntas.forEach(function (p) {
+      if (p && p.enunciado) set[p.enunciado] = true;
+    });
+    return set;
+  }
+
   function armarExamen() {
     var usados = {};
+    var recientes = enunciadosRecientes();
     var preguntas = PLAN.map(function (slot) {
       var lo = slot[0];
       var candidatas = porLo(lo).filter(function (p) { return !usados[p._id]; });
       if (!candidatas.length) candidatas = porLo(lo);
+      var frescas = candidatas.filter(function (p) { return !recientes[p.enunciado]; });
+      if (frescas.length) candidatas = frescas;
       var elegida = barajar(candidatas)[0];
       usados[elegida._id] = true;
       var orden = barajar(elegida.opciones.map(function (_, i) { return i; }));
@@ -439,7 +453,7 @@
         "<p class='kicker'>Práctica · ISTQB CT-GenAI</p>" +
         "<h1>Simulador de examen</h1>" +
         tarjetaPausa +
-        "<p class='lead'>Elige cómo quieres rendir. En los dos modos cada intento arma un examen nuevo: una formulación distinta por objetivo de aprendizaje, con las opciones y el orden barajados. Las preguntas son originales, escritas a partir del programa de estudios y del estilo del examen de muestra. No son los ítems oficiales.</p>" +
+        "<p class='lead'>Elige cómo quieres rendir. Cada examen toma 40 preguntas de un banco de " + (window.BANCO ? window.BANCO.length : 0) + " formulaciones originales, una por objetivo de aprendizaje. Si acabas de terminar un intento, el siguiente procura no repetir esas mismas preguntas, y baraja el orden y las opciones. No son los ítems oficiales.</p>" +
         "<ul class='reglas'>" +
           "<li><strong>40 preguntas</strong> y <strong>46 puntos</strong>, como el examen.</li>" +
           "<li>Se aprueba con <strong>30 puntos</strong> (65&nbsp;%).</li>" +
