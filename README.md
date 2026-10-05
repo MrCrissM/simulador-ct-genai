@@ -71,3 +71,21 @@ No requiere instalar dependencias. La comprobación valida:
 - estructura oficial del simulacro: **40 preguntas y 46 puntos**.
 
 Si el comando falla, no publiques hasta corregir el mensaje indicado. Al añadir una pregunta, su identificador se calcula a partir de su contenido; añade también sus justificaciones en `porques.js` bajo ese identificador. Reordenar el banco ya no cambia la asociación de las justificaciones.
+
+## Sincronización automática con GitHub
+
+El repositorio de esta carpeta está conectado a:
+
+```text
+https://github.com/cristianmirandaLatam/simulador-ct-genai
+```
+
+Para activar la subida automática durante el trabajo, abre PowerShell dentro de `simulador` y ejecuta:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\sincronizar-automaticamente.ps1
+```
+
+Mientras esa terminal permanezca abierta, cada archivo guardado espera tres segundos para agrupar cambios. El proceso ejecuta primero `node tools/verificar-datos.js`; si la validación pasa, crea un commit con fecha, integra los cambios remotos con `git pull --rebase` y lo publica en `origin/main`.
+
+No se suben `.graphify/`, dependencias, coberturas ni archivos de registro. Si la validación o la integración remota fallan, el proceso no hace `push`; el mensaje de la terminal indica qué se debe corregir. Pulsa `Ctrl+C` en esa terminal para detener la sincronización automática.
