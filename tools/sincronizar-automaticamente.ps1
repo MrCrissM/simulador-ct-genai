@@ -55,45 +55,26 @@ function Sincronizar {
     }
 }
 
-$watcher = New-Object System.IO.FileSystemWatcher
-$watcher.Path = $raiz
-$watcher.Filter = "*"
-$watcher.IncludeSubdirectories = $true
-$watcher.NotifyFilter = [System.IO.NotifyFilters]"FileName, LastWrite, Size, DirectoryName"
-$watcher.EnableRaisingEvents = $true
-
-$pendiente = $false
-$ultimaModificacion = Get-Date
-
-$registrarEvento = {
-    if (-not (Es-Ruta-Ignorada $Event.SourceEventArgs.FullPath)) {
-        $script:pendiente = $true
-        $script:ultimaModificacion = Get-Date
-    }
+function Hay-Cambios-Pendientes {
+    git status --porcelain
+    return $LASTEXITCODE -eq 0 -and $null -ne $output -and $output.Count -gt 0
 }
 
-$subscriptions = @(
-    Register-ObjectEvent -InputObject $watcher -EventName Changed -Action $registrarEvento,
-    Register-ObjectEvent -InputObject $watcher -EventName Created -Action $registrarEvento,
-    Register-ObjectEvent -InputObject $watcher -EventName Deleted -Action $registrarEvento,
-    Register-ObjectEvent -InputObject $watcher -EventName Renamed -Action $registrarEvento
-)
-
 Write-Host "Sincronización automática activa para: $raiz" -ForegroundColor Green
-Write-Host "Cada cambio guardado espera 3 segundos, se valida y se sube a origin/main."
+Write-Host "Revisa cambios cada 5 segundos; antes de subir espera 3 segundos de estabilidad."
 Write-Host "Pulsa Ctrl+C para detenerla."
 
-try {
-    while ($true) {
-        Start-Sleep -Milliseconds 500
+while ($true) {
+    $output = @(git status --porcelain)
 
-        if ($pendiente -and ((Get-Date) - $ultimaModificacion).TotalSeconds -ge 3) {
-            $pendiente = $false
+    if ($LASTEXITCODE -eq 0 -and $output.Count -gt 0) {
+        Start-Sleep -Seconds 3
+        $confirmacion = @(git status --porcelain)
+
+        if ($LASTEXITCODE -eq 0 -and ($confirmacion -join "`n") -eq ($output -join "`n")) {
             Sincronizar
         }
     }
-}
-finally {
-    $subscriptions | ForEach-Object { Unregister-Event -SubscriptionId $_.Id -ErrorAction SilentlyContinue }
-    $watcher.Dispose()
+
+    Start-Sleep -Seconds 5
 }
