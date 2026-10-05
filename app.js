@@ -461,13 +461,14 @@
     if (!window.SILABO || !window.SILABO.terminos) return "";
     var bloques = window.SILABO.terminos.map(function (cap) {
       var items = cap[1].map(function (t) {
-        return "<li><strong>" + escapar(t[0]) + ".</strong> " + escapar(t[1]) + "</li>";
+        var ingles = t[2] ? " <span class='termino-en' lang='en'>(" + escapar(t[2]) + ")</span>" : "";
+        return "<li><strong>" + escapar(t[0]) + "</strong>" + ingles + "<strong>.</strong> " + escapar(t[1]) + "</li>";
       }).join("");
       return "<li class='grupo-silabo'><strong>Capítulo " + escapar(cap[0]) + ". " + escapar(cap[2] || "") + "</strong><ul>" + items + "</ul></li>";
     }).join("");
     return "<details class='silabo-completo'>" +
       "<summary>Términos para repasar</summary>" +
-      "<p>Palabras que el examen puede pedir recordar. Cada definición es una guía breve para estudiar, escrita para este simulador.</p>" +
+      "<p>Palabras que el examen puede pedir recordar. Entre paréntesis va el término en inglés, tal como aparece en el sílabo original. Cada definición es una guía breve para estudiar, escrita para este simulador.</p>" +
       "<ul class='indice-silabo'>" + bloques + "</ul>" +
     "</details>";
   }

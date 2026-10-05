@@ -201,53 +201,60 @@
     },
     terminos: [
       ["1", [
-        ["IA simbólica", "Decisiones con reglas y símbolos escritos por personas."],
-        ["Aprendizaje automático clásico", "El modelo se entrena después de que alguien elige las características."],
-        ["Aprendizaje profundo", "Redes que aprenden las características. No crea contenido nuevo por sí mismo."],
-        ["IA generativa", "Crea datos nuevos imitando patrones del entrenamiento."],
-        ["Token", "Pieza en la que se parte el texto para que el modelo lo procese."],
-        ["Ventana de contexto", "Cantidad de tokens que el modelo puede tener en cuenta a la vez."],
-        ["Modelo fundacional", "Modelo entrenado de forma general, antes de ajustarlo a instrucciones."],
-        ["Modelo multimodal", "Acepta más de un tipo de entrada, por ejemplo texto e imagen."]
+        ["IA simbólica", "Decisiones con reglas y símbolos escritos por personas.", "symbolic AI"],
+        ["Aprendizaje automático clásico", "El modelo se entrena después de que alguien elige las características.", "classical machine learning"],
+        ["Aprendizaje profundo", "Redes que aprenden las características. No crea contenido nuevo por sí mismo.", "deep learning"],
+        ["IA generativa", "Crea datos nuevos imitando patrones del entrenamiento.", "generative AI, GenAI"],
+        ["Token", "Pieza en la que se parte el texto para que el modelo lo procese.", "token; tokenization"],
+        ["Ventana de contexto", "Cantidad de tokens que el modelo puede tener en cuenta a la vez.", "context window"],
+        ["Modelo fundacional", "Modelo entrenado de forma general, antes de ajustarlo a instrucciones.", "foundation LLM"],
+        ["Modelo multimodal", "Acepta más de un tipo de entrada, por ejemplo texto e imagen.", "multimodal model"],
+        ["Chatbot con IA", "Conversación abierta con el modelo, sin un recorrido de prueba fijo.", "AI chatbot"],
+        ["Incrustación", "Número que representa un token y acerca a los que se parecen en significado.", "embedding"],
+        ["Transformador", "Arquitectura de red con la que el modelo relaciona los tokens de una secuencia.", "transformer"],
+        ["Modelo ajustado por instrucciones", "Modelo fundacional afinado para seguir mejor lo que se le pide.", "instruction-tuned LLM"],
+        ["Modelo de razonamiento", "Modelo que dedica más pasos a un problema que hay que encadenar.", "reasoning LLM"]
       ], "Introducción"],
       ["2", [
-        ["Prompt", "Instrucción que se le da al modelo, con contexto, datos, límites y formato."],
-        ["Prompt de sistema", "Reglas o rol que se mantienen a lo largo de la sesión."],
-        ["Prompt de usuario", "Encargo concreto de este turno."],
-        ["Sin ejemplos", "Solo la consigna, sin casos de muestra."],
-        ["Un ejemplo", "Se muestra un único caso aceptado para fijar el formato."],
-        ["Pocos ejemplos", "Se muestran varios casos para guiar formato y contenido."],
-        ["Encadenamiento", "La tarea se parte en varios prompts, y la salida de uno alimenta al siguiente."],
-        ["Meta-prompting", "El modelo ayuda a mejorar sus propios prompts."],
-        ["Tasa de éxito de ejecución", "Proporción de guiones generados que realmente se ejecutan bien."]
+        ["Prompt", "Instrucción que se le da al modelo, con contexto, datos, límites y formato.", "prompt"],
+        ["Procesamiento del lenguaje natural", "Tratamiento automático del lenguaje humano, como entender, resumir o redactar.", "natural language processing, NLP"],
+        ["Prompt de sistema", "Reglas o rol que se mantienen a lo largo de la sesión.", "system prompt"],
+        ["Prompt de usuario", "Encargo concreto de este turno.", "user prompt"],
+        ["Sin ejemplos", "Solo la consigna, sin casos de muestra.", "zero-shot prompting"],
+        ["Un ejemplo", "Se muestra un único caso aceptado para fijar el formato.", "one-shot prompting"],
+        ["Pocos ejemplos", "Se muestran varios casos para guiar formato y contenido.", "few-shot prompting"],
+        ["Encadenamiento", "La tarea se parte en varios prompts, y la salida de uno alimenta al siguiente.", "prompt chaining"],
+        ["Meta-prompting", "El modelo ayuda a mejorar sus propios prompts.", "meta-prompting"],
+        ["Tasa de éxito de ejecución", "Proporción de guiones generados que realmente se ejecutan bien.", "execution success rate"]
       ], "Ingeniería de prompts"],
       ["3", [
-        ["Alucinación", "La salida afirma algo que no está en la entrada ni en los hechos."],
-        ["Error de razonamiento", "Los datos pueden estar, pero la conclusión no se sigue."],
-        ["Sesgo", "Desvío sistemático, por ejemplo una generalización sobre un grupo sin apoyo en la especificación."],
-        ["Temperatura", "Controla cuánta variación hay al generar. Baja, la salida es más repetible."],
-        ["Manipulación del contexto", "Intento de sonsacar datos confidenciales que el modelo vio."],
-        ["Envenenamiento", "Datos de entrenamiento o de ajuste alterados a propósito."],
-        ["ISO/IEC 42001", "Requisitos para gestionar sistemas de IA en la organización."],
-        ["ISO/IEC 23053", "Marco de sistemas de IA con aprendizaje automático."],
-        ["Reglamento europeo de IA", "Marco legal que clasifica usos según el riesgo."],
-        ["Marco NIST de riesgos de IA", "Guía para gestionar riesgos de IA, con foco en equidad, transparencia y seguridad."]
+        ["Alucinación", "La salida afirma algo que no está en la entrada ni en los hechos.", "hallucination"],
+        ["Error de razonamiento", "Los datos pueden estar, pero la conclusión no se sigue.", "reasoning error"],
+        ["Sesgo", "Desvío sistemático, por ejemplo una generalización sobre un grupo sin apoyo en la especificación.", "bias"],
+        ["Temperatura", "Controla cuánta variación hay al generar. Baja, la salida es más repetible.", "temperature"],
+        ["Manipulación del contexto", "Intento de sonsacar datos confidenciales que el modelo vio.", "context manipulation; en la v1.0, data exfiltration"],
+        ["Envenenamiento", "Datos de entrenamiento o de ajuste alterados a propósito.", "data poisoning"],
+        ["ISO/IEC 42001", "Requisitos para gestionar sistemas de IA en la organización.", "ISO/IEC 42001:2023, AI management system"],
+        ["ISO/IEC 23053", "Marco de sistemas de IA con aprendizaje automático.", "ISO/IEC 23053:2022, framework for AI systems using machine learning"],
+        ["Reglamento europeo de IA", "Marco legal que clasifica usos según el riesgo.", "EU AI Act"],
+        ["Marco NIST de riesgos de IA", "Guía para gestionar riesgos de IA, con foco en equidad, transparencia y seguridad.", "NIST AI Risk Management Framework, AI RMF"]
       ], "Riesgos"],
       ["4", [
-        ["Front-end", "Recoge la entrada de la persona y muestra la salida."],
-        ["Back-end", "Prepara el prompt juntando la entrada con datos recuperados."],
-        ["Generación aumentada por recuperación", "Se buscan fragmentos pertinentes, se añaden al prompt y entonces el modelo responde."],
-        ["Agente", "El modelo persigue un objetivo y puede usar herramientas. La verificación humana se mantiene donde el riesgo lo pide."],
-        ["Ajuste fino", "Se sigue entrenando el modelo con datos de la tarea de prueba."],
-        ["Operaciones de modelos", "Versionar, vigilar y cambiar con control los modelos y los prompts ya en uso."]
+        ["Front-end", "Recoge la entrada de la persona y muestra la salida.", "front-end"],
+        ["Back-end", "Prepara el prompt juntando la entrada con datos recuperados.", "back-end"],
+        ["Base de datos vectorial", "Almacén de fragmentos convertidos en vectores, para recuperar los más parecidos en significado.", "vector database"],
+        ["Generación aumentada por recuperación", "Se buscan fragmentos pertinentes, se añaden al prompt y entonces el modelo responde.", "retrieval-augmented generation, RAG"],
+        ["Agente", "El modelo persigue un objetivo y puede usar herramientas. La verificación humana se mantiene donde el riesgo lo pide.", "LLM-powered agent"],
+        ["Ajuste fino", "Se sigue entrenando el modelo con datos de la tarea de prueba.", "fine-tuning"],
+        ["Operaciones de modelos", "Versionar, vigilar y cambiar con control los modelos y los prompts ya en uso.", "large language model operations, LLMOps"]
       ], "Infraestructura"],
       ["5", [
-        ["IA en la sombra", "Uso de modelos no autorizados, a menudo con datos de la organización."],
-        ["Estrategia de IA generativa", "Para qué se usa, con qué herramientas y con qué reglas de datos."],
-        ["Modelo pequeño", "Menos parámetros. Puede bastar en tareas acotadas y dentro de la red interna."],
-        ["Descubrimiento", "Primera fase: formarse, probar y hacer experimentos pequeños."],
-        ["Inicio y definición del uso", "Segunda fase: elegir y priorizar casos de uso reales."],
-        ["Uso e iteración", "Tercera fase: integrar, medir y ajustar."]
+        ["IA en la sombra", "Uso de modelos no autorizados, a menudo con datos de la organización.", "shadow AI"],
+        ["Estrategia de IA generativa", "Para qué se usa, con qué herramientas y con qué reglas de datos.", "generative AI strategy"],
+        ["Modelo pequeño", "Menos parámetros. Puede bastar en tareas acotadas y dentro de la red interna.", "small language model, SLM"],
+        ["Descubrimiento", "Primera fase: formarse, probar y hacer experimentos pequeños.", "discovery"],
+        ["Inicio y definición del uso", "Segunda fase: elegir y priorizar casos de uso reales.", "initiation and usage definition"],
+        ["Uso e iteración", "Tercera fase: integrar, medir y ajustar.", "utilization and iteration"]
       ], "Adopción"]
     ]
   };
