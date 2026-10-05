@@ -2,7 +2,7 @@
 
 Aplicación de un solo directorio para ensayar el examen ISTQB® Certified Tester – Testing with Generative AI.
 
-En la pantalla de inicio se elige el modo. Antes de entrar, un cuadro pide confirmar: se puede cancelar y seguir en el inicio.
+En la pantalla de inicio se elige el modo. Antes de entrar, un cuadro pide confirmar: se puede cancelar y seguir en el inicio. El interruptor «Modo oscuro», también visible durante el examen y en el resultado, sigue el modo del dispositivo hasta que se cambia; a partir de ahí la elección queda guardada en ese navegador.
 
 - **Examen real.** 40 preguntas, sin comentarios mientras se responde. La nota y la corrección aparecen al entregar.
 - **Examen de prueba.** Al confirmar cada respuesta se muestra enseguida cuál es la correcta y por qué. La respuesta queda fija después de confirmarla.

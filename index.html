@@ -4,6 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f3d68">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("ctgenai-tema");
+        if (t !== "oscuro" && t !== "claro") {
+          t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
+        }
+        document.documentElement.setAttribute("data-tema", t);
+      } catch (e) {}
+    })();
+  </script>
   <meta name="description" content="Simulador de práctica del examen ISTQB CT-GenAI: examen real y examen de prueba.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">

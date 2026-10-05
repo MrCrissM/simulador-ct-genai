@@ -56,6 +56,7 @@
   var CLAVE_HIST = "ctgenai-historial";
   var CLAVE_SESION = "ctgenai-sesion";
   var CLAVE_PAUSA = "ctgenai-pausado";
+  var CLAVE_TEMA = "ctgenai-tema";
 
   var estado = null;
   var reloj = null;
@@ -326,6 +327,54 @@
     var raiz = document.getElementById("app");
     raiz.innerHTML = "";
     raiz.appendChild(nodo);
+    engancharTema(nodo);
+  }
+
+  function temaGuardado() {
+    try {
+      var t = localStorage.getItem(CLAVE_TEMA);
+      if (t === "oscuro" || t === "claro") return t;
+    } catch (e) {}
+    return "";
+  }
+
+  function temaEfectivo() {
+    var g = temaGuardado();
+    if (g) return g;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
+  }
+
+  function aplicarTema() {
+    var t = temaEfectivo();
+    document.documentElement.setAttribute("data-tema", t);
+    var meta = document.querySelector("meta[name='theme-color']");
+    if (meta) meta.setAttribute("content", t === "oscuro" ? "#0e141b" : "#0f3d68");
+  }
+
+  function htmlTema() {
+    var on = temaEfectivo() === "oscuro";
+    return "<button type='button' class='interruptor" + (on ? " activo" : "") + "' id='tema' role='switch' aria-checked='" + (on ? "true" : "false") + "'>" +
+      "<span class='interruptor-pista' aria-hidden='true'></span><span>Modo oscuro</span></button>";
+  }
+
+  function engancharTema(nodo) {
+    var b = nodo.querySelector("#tema");
+    if (!b) return;
+    b.addEventListener("click", function () {
+      var siguiente = temaEfectivo() === "oscuro" ? "claro" : "oscuro";
+      try { localStorage.setItem(CLAVE_TEMA, siguiente); } catch (e) {}
+      aplicarTema();
+      b.classList.toggle("activo", siguiente === "oscuro");
+      b.setAttribute("aria-checked", siguiente === "oscuro" ? "true" : "false");
+    });
+  }
+
+  function instalarTema() {
+    aplicarTema();
+    if (!window.matchMedia) return;
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var alCambiar = function () { if (!temaGuardado()) aplicarTema(); };
+    if (mq.addEventListener) mq.addEventListener("change", alCambiar);
   }
 
   /* Pide confirmación antes de armar el examen, para no entrar con un clic accidental. */
@@ -544,6 +593,7 @@
 
     var nodo = el(
       "<section class='panel inicio'>" +
+        "<div class='fila-tema'>" + htmlTema() + "</div>" +
         "<p class='kicker'>Práctica · ISTQB CT-GenAI</p>" +
         "<h1>Simulador de examen</h1>" +
         tarjetaPausa +
@@ -780,6 +830,7 @@
           "<div><strong>" + escapar(nombreModo(estado.modo)) + "</strong><span class='meta'>Pregunta " + (estado.indice + 1) + " de 40 · " + p.puntos + (p.puntos === 1 ? " punto" : " puntos") + " · " + p.k + "</span></div>" +
           "<div class='barra-derecha'>" +
             "<div class='barra-botones'>" +
+              htmlTema() +
               "<button type='button' class='barra-btn' id='pausar' title='Guardar el examen y detener el tiempo para seguir después'>Pausar</button>" +
               "<button type='button' class='barra-btn' id='terminar' title='Cerrar el examen ahora y guardarlo como incompleto'>Terminar</button>" +
             "</div>" +
@@ -985,6 +1036,7 @@
 
     var nodo = el(
       "<section class='panel resultado'>" +
+        "<div class='fila-tema'>" + htmlTema() + "</div>" +
         "<p class='kicker'>" + kicker + "</p>" +
         titulo +
         "<p class='nota'>" + resultado.puntos + " / " + TOTAL_PUNTOS + " puntos · el corte es " + CORTE + notaExtra + "</p>" +
@@ -1023,6 +1075,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     window.BANCO.forEach(function (p, i) { p._id = p.lo + "#" + i; });
     instalarIrArriba();
+    instalarTema();
     if (!restaurar()) pantallaInicio();
   });
 
