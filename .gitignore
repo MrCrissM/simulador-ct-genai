@@ -1,0 +1,11 @@
+# Metadatos locales generados por herramientas de análisis
+.graphify/
+
+# Dependencias, cobertura y registros locales
+node_modules/
+coverage/
+*.log
+
+# Archivos temporales y del sistema
+.DS_Store
+Thumbs.db

@@ -2,8 +2,34 @@
    Preguntas originales, alineadas a los objetivos de aprendizaje del programa de estudios
    y al estilo del examen de muestra. No son ítems oficiales del ISTQB. */
 (function () {
+  /*
+   * Identificador estable de una pregunta. No depende de su posición en el
+   * banco: al reordenar preguntas, sus justificaciones siguen vinculadas.
+   * Si se cambia el enunciado, la validación obliga a revisar su explicación.
+   */
+  function idPregunta(lo, enunciado, opciones) {
+    var texto = lo + "|" + enunciado + "|" + opciones.join("|");
+    var hash = 2166136261;
+    for (var i = 0; i < texto.length; i++) {
+      hash ^= texto.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return "genai-" + lo.replace(/\./g, "-") + "-" + (hash >>> 0).toString(36);
+  }
+
   function q(lo, k, puntos, elegir, enunciado, opciones, correctas, porque) {
-    return { lo: lo, k: k, puntos: puntos, elegir: elegir, enunciado: enunciado, lista: null, opciones: opciones, correctas: correctas, porque: porque };
+    return {
+      id: idPregunta(lo, enunciado, opciones),
+      lo: lo,
+      k: k,
+      puntos: puntos,
+      elegir: elegir,
+      enunciado: enunciado,
+      lista: null,
+      opciones: opciones,
+      correctas: correctas,
+      porque: porque
+    };
   }
 
   /* Pregunta con una lista numerada bajo el enunciado (afirmaciones i-v, pares 1-4 / A-D, pasos...).

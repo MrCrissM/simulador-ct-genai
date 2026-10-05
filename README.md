@@ -38,6 +38,8 @@ git push -u origin main
 
 En el iPhone o el iPad, abre esa dirección con Safari, pulsa Compartir y elige **Añadir a pantalla de inicio**. Queda con icono y se abre a pantalla completa. En Android, Chrome ofrece «Instalar aplicación» o «Añadir a pantalla principal».
 
+Después de la primera visita con conexión, el simulador guarda sus archivos esenciales en el dispositivo. Por ello puede abrirse y utilizarse sin conexión. Cuando vuelva a haber red, el service worker busca una versión actualizada. Si se publica un cambio importante, se debe aumentar la versión `CACHE` de `sw.js` para que los dispositivos renueven su caché.
+
 El historial de intentos y el examen en pausa se guardan en el navegador de cada dispositivo. En «Intentos anteriores» puedes **Descargar historial** (un archivo JSON, con el examen en pausa si hay uno) y, en el otro aparato, **Traer historial**. Los intentos que ya estaban no se duplican y se conservan los 20 más recientes. Cada intento tiene «Eliminar», y «Borrar todo el historial» vacía la lista; las dos acciones piden confirmación.
 
 ## Cómo abrirlo en local
@@ -49,3 +51,23 @@ python3 -m http.server 8765
 ```
 
 y entrar en `http://localhost:8765/`.
+
+## Verificar cambios antes de publicar
+
+Desde la raíz del repositorio, ejecuta:
+
+```bash
+node tools/verificar-datos.js
+```
+
+No requiere instalar dependencias. La comprobación valida:
+
+- identificadores únicos y estables de las preguntas;
+- asociación de cada explicación con el identificador de su pregunta, no con su posición en el banco;
+- número de explicaciones y opciones;
+- índices de respuestas correctas y cantidad exigida al responder;
+- correspondencia de objetivos entre banco y sílabo;
+- disponibilidad de preguntas para cada entrada del plan;
+- estructura oficial del simulacro: **40 preguntas y 46 puntos**.
+
+Si el comando falla, no publiques hasta corregir el mensaje indicado. Al añadir una pregunta, su identificador se calcula a partir de su contenido; añade también sus justificaciones en `porques.js` bajo ese identificador. Reordenar el banco ya no cambia la asociación de las justificaciones.
