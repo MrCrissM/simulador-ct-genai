@@ -196,13 +196,56 @@
     if (!restaurar()) pantallaInicio();
   }
 
+  async function crearUsuarioDesdeAdmin(nodo) {
+    var formulario = nodo.querySelector("#form-crear-usuario");
+    var aviso = nodo.querySelector("#aviso-crear-usuario");
+    var boton = formulario.querySelector("button[type='submit']");
+    var nombre = nodo.querySelector("#nombre-usuario").value.trim();
+    var email = nodo.querySelector("#email-usuario").value.trim();
+    var password = nodo.querySelector("#password-usuario").value;
+
+    aviso.textContent = "";
+    boton.disabled = true;
+    boton.textContent = "Creando…";
+
+    var respuesta = await clienteSupabase.functions.invoke("crear-usuario", {
+      body: { nombre: nombre, email: email, password: password }
+    });
+
+    boton.disabled = false;
+    boton.textContent = "Crear usuario";
+
+    if (respuesta.error || !respuesta.data || !respuesta.data.ok) {
+      var detalle = respuesta.data && respuesta.data.error
+        ? respuesta.data.error
+        : (respuesta.error && respuesta.error.message) || "No se pudo crear la cuenta.";
+      aviso.className = "aviso-crear-usuario error";
+      aviso.textContent = detalle;
+      return;
+    }
+
+    formulario.reset();
+    aviso.className = "aviso-crear-usuario exito";
+    aviso.textContent = "Cuenta creada para " + respuesta.data.usuario.nombre +
+      " (" + respuesta.data.usuario.email + ").";
+  }
+
   async function pantallaAdministracion() {
     if (!esAdmin()) { pantallaInicio(); return; }
     var nodo = el(
       "<section class='panel inicio'>" +
         "<div class='fila-tema'>" + htmlTema() + "</div>" +
         cabeceraCuenta() +
-        "<p class='kicker'>Administración</p><h1>Resultados de participantes</h1>" +
+        "<p class='kicker'>Administración</p><h1>Administrar participantes</h1>" +
+        "<p class='lead'>Crea cuentas con nombre, correo y contraseña. La cuenta queda confirmada y puede ingresar de inmediato.</p>" +
+        "<form id='form-crear-usuario' class='form-acceso form-crear-usuario'>" +
+          "<label>Nombre completo<input id='nombre-usuario' type='text' maxlength='120' autocomplete='name' required></label>" +
+          "<label>Correo electrónico<input id='email-usuario' type='email' autocomplete='email' required></label>" +
+          "<label>Contraseña temporal<input id='password-usuario' type='password' minlength='8' autocomplete='new-password' required></label>" +
+          "<button class='primario' type='submit'>Crear usuario</button>" +
+        "</form>" +
+        "<p id='aviso-crear-usuario' class='aviso-crear-usuario' role='status'></p>" +
+        "<h2>Resultados de participantes</h2>" +
         "<p class='lead'>Aquí puedes revisar todos los intentos y decidir cuáles se muestran en el ranking publicado.</p>" +
         "<p id='cargando-admin'>Cargando resultados…</p><div id='lista-admin'></div>" +
         "<div class='acciones'><button type='button' id='volver-admin'>Volver al inicio</button></div>" +
@@ -211,6 +254,10 @@
     mostrar(nodo);
     conectarBotonesCuenta(nodo);
     nodo.querySelector("#volver-admin").addEventListener("click", pantallaInicio);
+    nodo.querySelector("#form-crear-usuario").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      crearUsuarioDesdeAdmin(nodo);
+    });
     var respuesta = await clienteSupabase
       .from("intentos")
       .select("id, puntos, puntos_totales, aprobado, incompleto, modo, respondidas, creado_en, finalizado_en, publicado, alias_publico, perfiles(nombre)")

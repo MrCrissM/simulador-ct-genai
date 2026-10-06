@@ -110,6 +110,34 @@ h2 { font-size: 1.05rem; margin: 1.4rem 0 0.5rem; }
 }
 .form-acceso input:focus { outline: 2px solid var(--azul); outline-offset: 1px; }
 .form-acceso button { justify-self: start; margin-top: 0.2rem; }
+.form-crear-usuario {
+  max-width: 32rem;
+  margin: 0.9rem 0 0;
+  padding: 1rem;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: var(--fondo);
+}
+.aviso-crear-usuario {
+  display: none;
+  max-width: 32rem;
+  margin: 0.75rem 0 0;
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+}
+.aviso-crear-usuario.error {
+  display: block;
+  color: var(--mal);
+  border-color: var(--mal-linea);
+  background: var(--mal-fondo);
+}
+.aviso-crear-usuario.exito {
+  display: block;
+  color: var(--ok);
+  border-color: var(--ok-linea);
+  background: var(--ok-fondo);
+}
 .aviso-acceso {
   border: 1px solid var(--aviso-linea);
   background: var(--aviso-fondo);

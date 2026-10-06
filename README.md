@@ -72,6 +72,42 @@ No requiere instalar dependencias. La comprobación valida:
 
 Si el comando falla, no publiques hasta corregir el mensaje indicado. Al añadir una pregunta, su identificador se calcula a partir de su contenido; añade también sus justificaciones en `porques.js` bajo ese identificador. Reordenar el banco ya no cambia la asociación de las justificaciones.
 
+## Crear participantes con nombre, correo y contraseña
+
+El panel **Administración** de la aplicación incluye un formulario para crear participantes con su nombre completo, correo y contraseña en una sola operación. Solo lo ven los usuarios cuyo perfil tiene el rol `admin`.
+
+El formulario requiere la función segura de Supabase `crear-usuario`. La clave `service_role` se usa únicamente dentro de esa función y nunca se publica en GitHub Pages ni en `supabase-config.js`.
+
+### Desplegar la función una vez
+
+La forma recomendada es usar la CLI de Supabase. En PowerShell, dentro de la carpeta `simulador`, ejecuta:
+
+```powershell
+npx supabase login
+npx supabase link --project-ref ncawxlyzfcjuzfhbrcwo
+npx supabase functions deploy crear-usuario
+```
+
+El primer comando abre el inicio de sesión de Supabase. La CLI solicita autorización en el navegador; no se debe escribir ni guardar ninguna clave `service_role` en archivos del proyecto.
+
+La función ya está incluida en este repositorio:
+
+```text
+supabase/functions/crear-usuario/index.ts
+```
+
+Supabase entrega automáticamente a las Edge Functions las variables protegidas `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`. No agregues ni reemplaces esos secretos manualmente.
+
+Como alternativa sin CLI, abre el proyecto en Supabase, entra a **Edge Functions**, crea una función llamada `crear-usuario`, copia el contenido de `supabase/functions/crear-usuario/index.ts` en el editor y pulsa **Deploy function**. Mantén activada la verificación de JWT.
+
+Después del despliegue:
+
+1. Entra a la aplicación con la cuenta administradora.
+2. Pulsa **Administración**.
+3. Escribe el nombre completo, correo y una contraseña de al menos ocho caracteres.
+4. Pulsa **Crear usuario**.
+5. El participante puede iniciar sesión inmediatamente; el perfil queda creado con el nombre indicado y el rol `participante`.
+
 ## Sincronización automática con GitHub
 
 El repositorio de esta carpeta está conectado a:
