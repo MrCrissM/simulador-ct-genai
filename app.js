@@ -185,7 +185,10 @@
     if (!usuarioActual) { pantallaAcceso(); return; }
     var respuesta = await clienteSupabase.from("perfiles").select("id, nombre, rol").eq("id", usuarioActual.id).single();
     if (respuesta.error || !respuesta.data) {
-      pantallaAcceso("Tu cuenta no tiene un perfil habilitado. Contacta al administrador.");
+      var detalle = respuesta.error && respuesta.error.message
+        ? " (" + respuesta.error.message + ")"
+        : "";
+      pantallaAcceso("Tu cuenta no tiene un perfil habilitado. Contacta al administrador." + detalle);
       return;
     }
     perfilActual = respuesta.data;
