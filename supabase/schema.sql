@@ -40,6 +40,12 @@ create index if not exists intentos_publicados_idx
 alter table public.perfiles enable row level security;
 alter table public.intentos enable row level security;
 
+-- RLS define qué filas puede ver cada persona, pero el rol authenticated
+-- también necesita permisos SQL sobre las tablas para que las políticas se apliquen.
+grant usage on schema public to authenticated;
+grant select, update on table public.perfiles to authenticated;
+grant select, insert, update, delete on table public.intentos to authenticated;
+
 -- Función auxiliar: evita duplicar condiciones de rol en todas las políticas.
 create or replace function public.es_admin()
 returns boolean
