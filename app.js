@@ -196,13 +196,26 @@
     if (!restaurar()) pantallaInicio();
   }
 
-  async function crearUsuarioDesdeAdmin(nodo) {
-    var formulario = nodo.querySelector("#form-crear-usuario");
-    var aviso = nodo.querySelector("#aviso-crear-usuario");
+  function cerrarModal(fondo) {
+    document.body.classList.remove("modal-abierto");
+    fondo.remove();
+  }
+
+  function abrirModal(contenido) {
+    var fondo = el("<div class='modal-fondo'>" + contenido + "</div>");
+    document.body.appendChild(fondo);
+    document.body.classList.add("modal-abierto");
+    fondo.addEventListener("click", function (ev) {
+      if (ev.target === fondo) cerrarModal(fondo);
+    });
+    return fondo;
+  }
+
+  async function crearUsuarioDesdeAdmin(formulario, aviso) {
     var boton = formulario.querySelector("button[type='submit']");
-    var nombre = nodo.querySelector("#nombre-usuario").value.trim();
-    var email = nodo.querySelector("#email-usuario").value.trim();
-    var password = nodo.querySelector("#password-usuario").value;
+    var nombre = formulario.querySelector("#nombre-usuario").value.trim();
+    var email = formulario.querySelector("#email-usuario").value.trim();
+    var password = formulario.querySelector("#password-usuario").value;
 
     aviso.textContent = "";
     boton.disabled = true;
@@ -230,48 +243,120 @@
       " (" + respuesta.data.usuario.email + ").";
   }
 
-  async function mostrarUsuariosAdmin() {
-    var respuesta = await clienteSupabase
-      .from("perfiles")
-      .select("nombre, rol, creado_en")
-      .order("creado_en", { ascending: false });
+  function mostrarCrearUsuarioAdmin() {
+    var fondo = abrirModal(
+      "<section class='modal modal-crear-usuario' role='dialog' aria-modal='true' aria-labelledby='titulo-crear-usuario'>" +
+        "<p class='kicker'>Administración</p>" +
+        "<h2 id='titulo-crear-usuario'>Crear usuario</h2>" +
+        "<p>Crea una cuenta con acceso inmediato al simulador.</p>" +
+        "<form id='form-crear-usuario' class='form-acceso form-crear-usuario'>" +
+          "<label>Nombre completo<input id='nombre-usuario' type='text' maxlength='120' autocomplete='name' required></label>" +
+          "<label>Correo electrónico<input id='email-usuario' type='email' autocomplete='email' required></label>" +
+          "<label>Contraseña temporal<input id='password-usuario' type='password' minlength='6' autocomplete='new-password' required></label>" +
+          "<button class='primario' type='submit'>Crear usuario</button>" +
+        "</form>" +
+        "<p id='aviso-crear-usuario' class='aviso-crear-usuario' role='status'></p>" +
+        "<div class='acciones'><button type='button' id='cerrar-crear-usuario'>Cerrar</button></div>" +
+      "</section>"
+    );
+    var formulario = fondo.querySelector("#form-crear-usuario");
+    var aviso = fondo.querySelector("#aviso-crear-usuario");
+    fondo.querySelector("#cerrar-crear-usuario").addEventListener("click", function () {
+      cerrarModal(fondo);
+    });
+    formulario.querySelector("#nombre-usuario").focus();
+    formulario.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      crearUsuarioDesdeAdmin(formulario, aviso);
+    });
+  }
 
-    var contenido;
-    if (respuesta.error) {
-      contenido = "<p class='aviso-acceso'>No se pudo cargar el listado: " +
-        escapar(respuesta.error.message) + "</p>";
-    } else if (!respuesta.data.length) {
-      contenido = "<p class='vacio'>Todavía no hay usuarios creados.</p>";
-    } else {
-      contenido = "<ul class='historial lista-usuarios-admin'>" + respuesta.data.map(function (perfil) {
-        var rol = perfil.rol === "admin" ? "Administrador" : "Participante";
-        return "<li><span><strong>" + escapar(perfil.nombre || "Sin nombre") +
-          "</strong><small>Creado: " + escapar(fechaRemota(perfil.creado_en)) +
-          "</small></span><em class='" + (perfil.rol === "admin" ? "ok" : "neutro") +
-          "'>" + rol + "</em></li>";
-      }).join("") + "</ul>";
+  async function cargarUsuariosAdmin(contenedor) {
+    contenedor.innerHTML = "<p>Cargando usuarios…</p>";
+    var respuesta = await clienteSupabase.functions.invoke("administrar-usuarios", {
+      body: { accion: "listar" }
+    });
+    if (respuesta.error || !respuesta.data || !respuesta.data.ok) {
+      var detalle = respuesta.data && respuesta.data.error
+        ? respuesta.data.error
+        : (respuesta.error && respuesta.error.message) || "No se pudo cargar el listado.";
+      contenedor.innerHTML = "<p class='aviso-acceso'>" + escapar(detalle) + "</p>";
+      return;
     }
 
-    var fondo = el(
-      "<div class='modal-fondo'>" +
-        "<section class='modal modal-usuarios' role='dialog' aria-modal='true' aria-labelledby='titulo-usuarios'>" +
-          "<p class='kicker'>Administración</p>" +
-          "<h2 id='titulo-usuarios'>Usuarios creados</h2>" +
-          contenido +
-          "<div class='acciones'><button type='button' class='primario' id='cerrar-usuarios'>Cerrar</button></div>" +
-        "</section>" +
-      "</div>"
-    );
-    document.body.appendChild(fondo);
-    document.body.classList.add("modal-abierto");
-    var cerrar = function () {
-      document.body.classList.remove("modal-abierto");
-      fondo.remove();
-    };
-    fondo.querySelector("#cerrar-usuarios").addEventListener("click", cerrar);
-    fondo.addEventListener("click", function (ev) {
-      if (ev.target === fondo) cerrar();
+    var usuarios = respuesta.data.usuarios || [];
+    if (!usuarios.length) {
+      contenedor.innerHTML = "<p class='vacio'>Todavía no hay usuarios creados.</p>";
+      return;
+    }
+
+    contenedor.innerHTML = "<ul class='historial lista-usuarios-admin'>" + usuarios.map(function (perfil) {
+      var propio = perfil.id === usuarioActual.id;
+      var etiqueta = perfil.rol === "admin" ? "Administrador" : "Participante";
+      var acciones = propio
+        ? "<small class='nota-propia'>Tu cuenta</small>"
+        : "<span class='acciones-usuario'>" +
+          "<select class='rol-usuario' data-id='" + perfil.id + "' aria-label='Rol de " + escapar(perfil.nombre || perfil.email) + "'>" +
+            "<option value='participante'" + (perfil.rol === "participante" ? " selected" : "") + ">Participante</option>" +
+            "<option value='admin'" + (perfil.rol === "admin" ? " selected" : "") + ">Administrador</option>" +
+          "</select>" +
+          "<button type='button' class='eliminar eliminar-usuario' data-id='" + perfil.id + "' data-nombre='" +
+            encodeURIComponent(perfil.nombre || perfil.email) + "'>Eliminar</button>" +
+        "</span>";
+      return "<li><span class='datos-usuario'><strong>" + escapar(perfil.nombre || "Sin nombre") +
+        "</strong><small>" + escapar(perfil.email || "Sin correo") + "</small><small>Creado: " +
+        escapar(fechaRemota(perfil.creado_en)) + "</small></span><span class='estado-usuario'><em class='" +
+        (perfil.rol === "admin" ? "ok" : "neutro") + "'>" + etiqueta + "</em>" + acciones + "</span></li>";
+    }).join("") + "</ul>";
+
+    contenedor.querySelectorAll(".rol-usuario").forEach(function (selector) {
+      selector.addEventListener("change", async function () {
+        selector.disabled = true;
+        var cambio = await clienteSupabase.functions.invoke("administrar-usuarios", {
+          body: { accion: "cambiar-rol", usuarioId: selector.getAttribute("data-id"), rol: selector.value }
+        });
+        if (cambio.error || !cambio.data || !cambio.data.ok) {
+          var detalle = cambio.data && cambio.data.error
+            ? cambio.data.error
+            : (cambio.error && cambio.error.message) || "No se pudo cambiar el rol.";
+          window.alert(detalle);
+        }
+        cargarUsuariosAdmin(contenedor);
+      });
     });
+    contenedor.querySelectorAll(".eliminar-usuario").forEach(function (boton) {
+      boton.addEventListener("click", async function () {
+        var nombre = decodeURIComponent(boton.getAttribute("data-nombre") || "este usuario");
+        if (!window.confirm("¿Eliminar definitivamente la cuenta de " + nombre + "? También se eliminarán sus resultados. No se puede deshacer.")) return;
+        boton.disabled = true;
+        var cambio = await clienteSupabase.functions.invoke("administrar-usuarios", {
+          body: { accion: "eliminar", usuarioId: boton.getAttribute("data-id") }
+        });
+        if (cambio.error || !cambio.data || !cambio.data.ok) {
+          var detalle = cambio.data && cambio.data.error
+            ? cambio.data.error
+            : (cambio.error && cambio.error.message) || "No se pudo eliminar la cuenta.";
+          window.alert(detalle);
+        }
+        cargarUsuariosAdmin(contenedor);
+      });
+    });
+  }
+
+  function mostrarUsuariosAdmin() {
+    var fondo = abrirModal(
+      "<section class='modal modal-usuarios' role='dialog' aria-modal='true' aria-labelledby='titulo-usuarios'>" +
+        "<p class='kicker'>Administración</p>" +
+        "<h2 id='titulo-usuarios'>Usuarios creados</h2>" +
+        "<p class='lead-modal'>Gestiona correos, roles y cuentas. Tu propia cuenta no se puede modificar desde este panel.</p>" +
+        "<div id='contenido-usuarios'></div>" +
+        "<div class='acciones'><button type='button' class='primario' id='cerrar-usuarios'>Cerrar</button></div>" +
+      "</section>"
+    );
+    fondo.querySelector("#cerrar-usuarios").addEventListener("click", function () {
+      cerrarModal(fondo);
+    });
+    cargarUsuariosAdmin(fondo.querySelector("#contenido-usuarios"));
   }
 
   async function pantallaAdministracion() {
@@ -281,15 +366,9 @@
         "<div class='fila-tema'>" + htmlTema() + "</div>" +
         cabeceraCuenta() +
         "<p class='kicker'>Administración</p><h1>Administrar participantes</h1>" +
-        "<p class='lead'>Crea cuentas con nombre, correo y contraseña. La cuenta queda confirmada y puede ingresar de inmediato.</p>" +
-        "<form id='form-crear-usuario' class='form-acceso form-crear-usuario'>" +
-          "<label>Nombre completo<input id='nombre-usuario' type='text' maxlength='120' autocomplete='name' required></label>" +
-          "<label>Correo electrónico<input id='email-usuario' type='email' autocomplete='email' required></label>" +
-          "<label>Contraseña temporal<input id='password-usuario' type='password' minlength='6' autocomplete='new-password' required></label>" +
-          "<button class='primario' type='submit'>Crear usuario</button>" +
-        "</form>" +
-        "<div class='acciones'><button type='button' id='ver-usuarios'>Ver usuarios</button></div>" +
-        "<p id='aviso-crear-usuario' class='aviso-crear-usuario' role='status'></p>" +
+        "<p class='lead'>Crea cuentas, revisa correos y administra los roles de los participantes.</p>" +
+        "<div class='acciones'><button type='button' class='primario' id='crear-usuario'>Crear usuario</button>" +
+        "<button type='button' id='ver-usuarios'>Ver usuarios</button></div>" +
         "<h2>Resultados de participantes</h2>" +
         "<p class='lead'>Aquí puedes revisar todos los intentos y decidir cuáles se muestran en el ranking publicado.</p>" +
         "<p id='cargando-admin'>Cargando resultados…</p><div id='lista-admin'></div>" +
@@ -299,10 +378,7 @@
     mostrar(nodo);
     conectarBotonesCuenta(nodo);
     nodo.querySelector("#volver-admin").addEventListener("click", pantallaInicio);
-    nodo.querySelector("#form-crear-usuario").addEventListener("submit", function (ev) {
-      ev.preventDefault();
-      crearUsuarioDesdeAdmin(nodo);
-    });
+    nodo.querySelector("#crear-usuario").addEventListener("click", mostrarCrearUsuarioAdmin);
     nodo.querySelector("#ver-usuarios").addEventListener("click", mostrarUsuariosAdmin);
     var respuesta = await clienteSupabase
       .from("intentos")
