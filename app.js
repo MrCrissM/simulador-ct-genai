@@ -230,6 +230,50 @@
       " (" + respuesta.data.usuario.email + ").";
   }
 
+  async function mostrarUsuariosAdmin() {
+    var respuesta = await clienteSupabase
+      .from("perfiles")
+      .select("nombre, rol, creado_en")
+      .order("creado_en", { ascending: false });
+
+    var contenido;
+    if (respuesta.error) {
+      contenido = "<p class='aviso-acceso'>No se pudo cargar el listado: " +
+        escapar(respuesta.error.message) + "</p>";
+    } else if (!respuesta.data.length) {
+      contenido = "<p class='vacio'>Todavía no hay usuarios creados.</p>";
+    } else {
+      contenido = "<ul class='historial lista-usuarios-admin'>" + respuesta.data.map(function (perfil) {
+        var rol = perfil.rol === "admin" ? "Administrador" : "Participante";
+        return "<li><span><strong>" + escapar(perfil.nombre || "Sin nombre") +
+          "</strong><small>Creado: " + escapar(fechaRemota(perfil.creado_en)) +
+          "</small></span><em class='" + (perfil.rol === "admin" ? "ok" : "neutro") +
+          "'>" + rol + "</em></li>";
+      }).join("") + "</ul>";
+    }
+
+    var fondo = el(
+      "<div class='modal-fondo'>" +
+        "<section class='modal modal-usuarios' role='dialog' aria-modal='true' aria-labelledby='titulo-usuarios'>" +
+          "<p class='kicker'>Administración</p>" +
+          "<h2 id='titulo-usuarios'>Usuarios creados</h2>" +
+          contenido +
+          "<div class='acciones'><button type='button' class='primario' id='cerrar-usuarios'>Cerrar</button></div>" +
+        "</section>" +
+      "</div>"
+    );
+    document.body.appendChild(fondo);
+    document.body.classList.add("modal-abierto");
+    var cerrar = function () {
+      document.body.classList.remove("modal-abierto");
+      fondo.remove();
+    };
+    fondo.querySelector("#cerrar-usuarios").addEventListener("click", cerrar);
+    fondo.addEventListener("click", function (ev) {
+      if (ev.target === fondo) cerrar();
+    });
+  }
+
   async function pantallaAdministracion() {
     if (!esAdmin()) { pantallaInicio(); return; }
     var nodo = el(
@@ -241,9 +285,10 @@
         "<form id='form-crear-usuario' class='form-acceso form-crear-usuario'>" +
           "<label>Nombre completo<input id='nombre-usuario' type='text' maxlength='120' autocomplete='name' required></label>" +
           "<label>Correo electrónico<input id='email-usuario' type='email' autocomplete='email' required></label>" +
-          "<label>Contraseña temporal<input id='password-usuario' type='password' minlength='8' autocomplete='new-password' required></label>" +
+          "<label>Contraseña temporal<input id='password-usuario' type='password' minlength='6' autocomplete='new-password' required></label>" +
           "<button class='primario' type='submit'>Crear usuario</button>" +
         "</form>" +
+        "<div class='acciones'><button type='button' id='ver-usuarios'>Ver usuarios</button></div>" +
         "<p id='aviso-crear-usuario' class='aviso-crear-usuario' role='status'></p>" +
         "<h2>Resultados de participantes</h2>" +
         "<p class='lead'>Aquí puedes revisar todos los intentos y decidir cuáles se muestran en el ranking publicado.</p>" +
@@ -258,6 +303,7 @@
       ev.preventDefault();
       crearUsuarioDesdeAdmin(nodo);
     });
+    nodo.querySelector("#ver-usuarios").addEventListener("click", mostrarUsuariosAdmin);
     var respuesta = await clienteSupabase
       .from("intentos")
       .select("id, puntos, puntos_totales, aprobado, incompleto, modo, respondidas, creado_en, finalizado_en, publicado, alias_publico, perfiles(nombre)")

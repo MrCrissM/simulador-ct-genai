@@ -46,6 +46,11 @@ grant usage on schema public to authenticated;
 grant select, update on table public.perfiles to authenticated;
 grant select, insert, update, delete on table public.intentos to authenticated;
 
+-- Las Edge Functions usan service_role solo en el servidor. Necesita estos
+-- permisos para validar el rol del administrador y actualizar el nombre al crear cuentas.
+grant usage on schema public to service_role;
+grant select, update on table public.perfiles to service_role;
+
 -- Función auxiliar: evita duplicar condiciones de rol en todas las políticas.
 create or replace function public.es_admin()
 returns boolean

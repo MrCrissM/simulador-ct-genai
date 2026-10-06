@@ -54,14 +54,27 @@ Deno.serve(async (request) => {
 
   /* La service_role nunca llega al navegador: solo vive dentro de esta función. */
   const administrador = createClient(url, serviceRoleKey);
+
+  /*
+   * La comprobación usa la service_role para no depender de políticas RLS
+   * durante el proceso de alta. El usuario a evaluar ya fue validado con
+   * auth.getUser() a partir del JWT enviado por el navegador.
+   */
   const { data: perfil, error: errorPerfil } = await administrador
     .from("perfiles")
     .select("rol")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (errorPerfil || perfil?.rol !== "admin") {
-    return respuesta({ error: "No tienes permisos para crear usuarios." }, 403);
+  if (errorPerfil) {
+    console.error("No se pudo consultar el perfil administrador.", errorPerfil);
+    return respuesta({ error: "No se pudo verificar el perfil administrador." }, 500);
+  }
+  if (!perfil) {
+    return respuesta({ error: "Tu cuenta no tiene un perfil de acceso habilitado." }, 403);
+  }
+  if (perfil.rol !== "admin") {
+    return respuesta({ error: "Tu perfil no tiene rol administrador." }, 403);
   }
 
   let datos: { nombre?: unknown; email?: unknown; password?: unknown };
@@ -81,8 +94,8 @@ Deno.serve(async (request) => {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return respuesta({ error: "Indica un correo electrónico válido." }, 400);
   }
-  if (password.length < 8) {
-    return respuesta({ error: "La contraseña debe tener al menos 8 caracteres." }, 400);
+  if (password.length < 6) {
+    return respuesta({ error: "La contraseña debe tener al menos 6 caracteres." }, 400);
   }
 
   const { data: creado, error: errorCreacion } = await administrador.auth.admin.createUser({
