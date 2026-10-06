@@ -96,7 +96,7 @@ create policy "perfiles: actualizar nombre propio"
   using (id = auth.uid() or public.es_admin())
   with check (
     public.es_admin()
-    or (id = auth.uid() and rol = (select rol from public.perfiles where id = auth.uid()))
+    or (id = auth.uid() and rol = 'participante')
   );
 
 -- Participantes: solamente sus intentos. Administradores: todos.
@@ -110,20 +110,28 @@ drop policy if exists "intentos: crear propios" on public.intentos;
 create policy "intentos: crear propios"
   on public.intentos for insert
   to authenticated
-  with check (usuario_id = auth.uid());
+  with check (
+    usuario_id = auth.uid()
+    and publicado = false
+    and alias_publico is null
+  );
 
+-- Los resultados son inmutables para participantes. Solo un administrador
+-- puede publicar, ocultar o corregir registros desde el panel de administración.
 drop policy if exists "intentos: actualizar propios o administrar" on public.intentos;
-create policy "intentos: actualizar propios o administrar"
+drop policy if exists "intentos: solo administrar actualiza" on public.intentos;
+create policy "intentos: solo administrar actualiza"
   on public.intentos for update
   to authenticated
-  using (usuario_id = auth.uid() or public.es_admin())
-  with check (usuario_id = auth.uid() or public.es_admin());
+  using (public.es_admin())
+  with check (public.es_admin());
 
 drop policy if exists "intentos: eliminar propios o administrar" on public.intentos;
-create policy "intentos: eliminar propios o administrar"
+drop policy if exists "intentos: solo administrar elimina" on public.intentos;
+create policy "intentos: solo administrar elimina"
   on public.intentos for delete
   to authenticated
-  using (usuario_id = auth.uid() or public.es_admin());
+  using (public.es_admin());
 
 -- Ranking público opcional: expone solo los campos necesarios, nunca respuestas ni detalle.
 create or replace function public.resultados_publicados()

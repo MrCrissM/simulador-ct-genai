@@ -60,6 +60,201 @@
 
   var estado = null;
   var reloj = null;
+  var clienteSupabase = null;
+  var usuarioActual = null;
+  var perfilActual = null;
+  var historialRemotoCargado = false;
+
+  function iniciarSupabase() {
+    var cfg = window.CTGENAI_SUPABASE;
+    if (!cfg || !cfg.url || !cfg.publishableKey || !window.supabase) return false;
+    clienteSupabase = window.supabase.createClient(cfg.url, cfg.publishableKey);
+    return true;
+  }
+
+  function esAdmin() {
+    return !!(perfilActual && perfilActual.rol === "admin");
+  }
+
+  function nombreUsuario() {
+    if (perfilActual && perfilActual.nombre) return perfilActual.nombre;
+    if (usuarioActual && usuarioActual.email) return usuarioActual.email.split("@")[0];
+    return "Participante";
+  }
+
+  function fechaRemota(fecha) {
+    var d = new Date(fecha);
+    return isNaN(d.getTime()) ? "" : d.toLocaleString("es");
+  }
+
+  function intentoParaSupabase(intento) {
+    return {
+      usuario_id: usuarioActual.id,
+      finalizado_en: new Date().toISOString(),
+      modo: intento.modo,
+      puntos: intento.puntos,
+      puntos_totales: TOTAL_PUNTOS,
+      aprobado: intento.aprobado,
+      incompleto: !!intento.incompleto,
+      por_tiempo: !!intento.porTiempo,
+      respondidas: intento.respondidas,
+      minutos: intento.minutos,
+      detalle: intento
+    };
+  }
+
+  async function guardarIntentoRemoto(intento) {
+    if (!clienteSupabase || !usuarioActual) return;
+    var resultado = await clienteSupabase.from("intentos").insert(intentoParaSupabase(intento));
+    if (resultado.error) console.warn("No se pudo guardar el intento en Supabase.", resultado.error.message);
+  }
+
+  async function cargarHistorialRemoto() {
+    if (!clienteSupabase || !usuarioActual || historialRemotoCargado) return;
+    var respuesta = await clienteSupabase
+      .from("intentos")
+      .select("detalle, finalizado_en")
+      .order("finalizado_en", { ascending: false })
+      .limit(20);
+    if (respuesta.error) {
+      console.warn("No se pudo cargar el historial de Supabase.", respuesta.error.message);
+      return;
+    }
+    var intentos = respuesta.data.map(function (fila) {
+      var detalle = fila.detalle || {};
+      if (!detalle.fecha) detalle.fecha = fechaRemota(fila.finalizado_en);
+      return detalle;
+    }).filter(intentoValido);
+    escribirHistorial(intentos);
+    historialRemotoCargado = true;
+  }
+
+  function cabeceraCuenta() {
+    return "<div class='cuenta'>" +
+      "<span>Hola, <strong>" + escapar(nombreUsuario()) + "</strong></span>" +
+      (esAdmin() ? "<button type='button' id='ver-admin'>Administración</button>" : "") +
+      "<button type='button' id='cerrar-sesion'>Cerrar sesión</button>" +
+    "</div>";
+  }
+
+  async function cerrarSesion() {
+    pararReloj();
+    sessionStorage.removeItem(CLAVE_SESION);
+    if (clienteSupabase) await clienteSupabase.auth.signOut();
+    usuarioActual = null;
+    perfilActual = null;
+    historialRemotoCargado = false;
+    pantallaAcceso();
+  }
+
+  function pantallaAcceso(mensaje) {
+    var nodo = el(
+      "<section class='panel inicio acceso'>" +
+        "<div class='fila-tema'>" + htmlTema() + "</div>" +
+        "<p class='kicker'>Acceso restringido · ISTQB CT-GenAI</p>" +
+        "<h1>Iniciar sesión</h1>" +
+        "<p class='lead'>Esta plataforma está disponible únicamente para usuarios creados por el administrador.</p>" +
+        (mensaje ? "<p class='aviso-acceso'>" + escapar(mensaje) + "</p>" : "") +
+        "<form id='form-acceso' class='form-acceso'>" +
+          "<label>Correo electrónico<input id='correo-acceso' type='email' autocomplete='email' required></label>" +
+          "<label>Contraseña<input id='clave-acceso' type='password' autocomplete='current-password' required></label>" +
+          "<button class='primario' type='submit'>Ingresar</button>" +
+        "</form>" +
+      "</section>"
+    );
+    mostrar(nodo);
+    nodo.querySelector("#form-acceso").addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      var boton = nodo.querySelector("button[type='submit']");
+      boton.disabled = true;
+      boton.textContent = "Ingresando…";
+      var respuesta = await clienteSupabase.auth.signInWithPassword({
+        email: nodo.querySelector("#correo-acceso").value.trim(),
+        password: nodo.querySelector("#clave-acceso").value
+      });
+      if (respuesta.error) {
+        pantallaAcceso("No se pudo iniciar sesión. Revisa tu correo y contraseña.");
+        return;
+      }
+      await conectarSesion(respuesta.data.session);
+    });
+  }
+
+  async function conectarSesion(sesion) {
+    usuarioActual = sesion && sesion.user;
+    if (!usuarioActual) { pantallaAcceso(); return; }
+    var respuesta = await clienteSupabase.from("perfiles").select("id, nombre, rol").eq("id", usuarioActual.id).single();
+    if (respuesta.error || !respuesta.data) {
+      pantallaAcceso("Tu cuenta no tiene un perfil habilitado. Contacta al administrador.");
+      return;
+    }
+    perfilActual = respuesta.data;
+    await cargarHistorialRemoto();
+    if (!restaurar()) pantallaInicio();
+  }
+
+  async function pantallaAdministracion() {
+    if (!esAdmin()) { pantallaInicio(); return; }
+    var nodo = el(
+      "<section class='panel inicio'>" +
+        "<div class='fila-tema'>" + htmlTema() + "</div>" +
+        cabeceraCuenta() +
+        "<p class='kicker'>Administración</p><h1>Resultados de participantes</h1>" +
+        "<p class='lead'>Aquí puedes revisar todos los intentos y decidir cuáles se muestran en el ranking publicado.</p>" +
+        "<p id='cargando-admin'>Cargando resultados…</p><div id='lista-admin'></div>" +
+        "<div class='acciones'><button type='button' id='volver-admin'>Volver al inicio</button></div>" +
+      "</section>"
+    );
+    mostrar(nodo);
+    conectarBotonesCuenta(nodo);
+    nodo.querySelector("#volver-admin").addEventListener("click", pantallaInicio);
+    var respuesta = await clienteSupabase
+      .from("intentos")
+      .select("id, puntos, puntos_totales, aprobado, incompleto, modo, respondidas, creado_en, finalizado_en, publicado, alias_publico, perfiles(nombre)")
+      .order("finalizado_en", { ascending: false });
+    var carga = nodo.querySelector("#cargando-admin");
+    if (respuesta.error) {
+      carga.textContent = "No se pudieron cargar los resultados: " + respuesta.error.message;
+      return;
+    }
+    carga.remove();
+    var filas = respuesta.data.length ? respuesta.data.map(function (i) {
+      var perfil = i.perfiles || {};
+      var estadoIntento = i.incompleto ? "Incompleto" : (i.aprobado ? "Aprobado" : "No aprobado");
+      return "<li class='intento'>" +
+        "<span class='intento-fecha'><strong>" + escapar(perfil.nombre || "Participante") + "</strong><small>" +
+          escapar(fechaRemota(i.finalizado_en || i.creado_en)) + " · " + escapar(nombreModo(i.modo)) +
+          " · " + i.respondidas + "/40 respondidas</small></span>" +
+        "<strong>" + (i.puntos == null ? "—" : i.puntos + "/" + i.puntos_totales) + "</strong>" +
+        "<em class='" + (i.aprobado ? "ok" : "mal") + "'>" + estadoIntento + "</em>" +
+        "<span class='intento-acciones'><button type='button' class='publicar' data-id='" + i.id + "' data-publicado='" + i.publicado + "' data-alias='" + encodeURIComponent(perfil.nombre || "Participante") + "'>" +
+          (i.publicado ? "Ocultar" : "Publicar") + "</button></span></li>";
+    }).join("") : "<p class='vacio'>Aún no hay resultados guardados.</p>";
+    nodo.querySelector("#lista-admin").innerHTML = "<ul class='historial'>" + filas + "</ul>";
+    nodo.querySelectorAll(".publicar").forEach(function (boton) {
+      boton.addEventListener("click", async function () {
+        var publicar = boton.getAttribute("data-publicado") !== "true";
+        boton.disabled = true;
+        var cambio = await clienteSupabase.from("intentos").update({
+          publicado: publicar,
+          alias_publico: publicar ? decodeURIComponent(boton.getAttribute("data-alias")) : null
+        }).eq("id", boton.getAttribute("data-id"));
+        if (cambio.error) {
+          window.alert("No se pudo actualizar la publicación: " + cambio.error.message);
+          boton.disabled = false;
+          return;
+        }
+        pantallaAdministracion();
+      });
+    });
+  }
+
+  function conectarBotonesCuenta(nodo) {
+    var cerrar = nodo.querySelector("#cerrar-sesion");
+    if (cerrar) cerrar.addEventListener("click", cerrarSesion);
+    var admin = nodo.querySelector("#ver-admin");
+    if (admin) admin.addEventListener("click", pantallaAdministracion);
+  }
 
   function barajar(lista) {
     var a = lista.slice();
@@ -594,6 +789,7 @@
     var nodo = el(
       "<section class='panel inicio'>" +
         "<div class='fila-tema'>" + htmlTema() + "</div>" +
+        cabeceraCuenta() +
         "<p class='kicker'>Práctica · ISTQB CT-GenAI</p>" +
         "<h1>Simulador de examen</h1>" +
         tarjetaPausa +
@@ -619,7 +815,7 @@
         htmlIndiceSilabo() +
         htmlTerminos() +
         "<h2>Intentos anteriores</h2>" +
-        "<p class='nota-hist'>El historial se guarda en este navegador. Para verlo en el celular, la tablet o el computador, descárgalo y tráelo en el otro aparato. El archivo también incluye el examen en pausa, si hay uno.</p>" +
+        "<p class='nota-hist'>Tus intentos terminados se guardan en tu cuenta y se sincronizan entre dispositivos. También puedes descargar una copia local del historial; el archivo incluye el examen en pausa, si hay uno.</p>" +
         "<div class='acciones'>" +
           "<button type='button' id='descargar-hist'>Descargar historial</button>" +
           "<button type='button' id='traer-hist'>Traer historial</button>" +
@@ -631,6 +827,7 @@
       "</section>"
     );
     mostrar(nodo);
+    conectarBotonesCuenta(nodo);
     var continuar = nodo.querySelector("#continuar");
     if (continuar) continuar.addEventListener("click", reanudar);
     var descartar = nodo.querySelector("#descartar-pausa");
@@ -978,6 +1175,7 @@
       respuestas: estado.respuestas
     };
     guardarHistorial(intento);
+    guardarIntentoRemoto(intento);
     sessionStorage.removeItem(CLAVE_SESION);
     pintarResultado(intento, true);
   }
@@ -1072,11 +1270,17 @@
     return true;
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", async function () {
     window.BANCO.forEach(function (p, i) { p._id = p.lo + "#" + i; });
     instalarIrArriba();
     instalarTema();
-    if (!restaurar()) pantallaInicio();
+    if (!iniciarSupabase()) {
+      pantallaAcceso("Falta la configuración de acceso de la aplicación.");
+      return;
+    }
+    var respuesta = await clienteSupabase.auth.getSession();
+    if (respuesta.data.session) await conectarSesion(respuesta.data.session);
+    else pantallaAcceso();
   });
 
   window.CTGenAI = { PLAN: PLAN, armarExamen: armarExamen, puntuar: puntuar, TOTAL_PUNTOS: TOTAL_PUNTOS, CORTE: CORTE };

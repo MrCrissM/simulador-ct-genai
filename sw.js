@@ -1,4 +1,4 @@
-const CACHE = "ct-genai-v1";
+const CACHE = "ct-genai-v2";
 const ARCHIVOS_ESENCIALES = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const ARCHIVOS_ESENCIALES = [
   "./banco.js",
   "./porques.js",
   "./silabo.js",
+  "./supabase-config.js",
   "./app.js",
   "./manifest.webmanifest",
   "./favicon-32.png",

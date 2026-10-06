@@ -6,20 +6,39 @@ $ErrorActionPreference = "Stop"
 
 $raiz = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $raiz
+$archivoBloqueo = Join-Path $raiz ".git\ctgenai-sync.lock"
 
-function Es-Ruta-Ignorada([string]$ruta) {
-    $normalizada = $ruta.Replace("\", "/")
-    return $normalizada -match "/\.git/" -or
-           $normalizada -match "/\.graphify/" -or
-           $normalizada -match "/node_modules/" -or
-           $normalizada -match "/coverage/" -or
-           $normalizada -match "\.log$" -or
-           $normalizada -match "~$"
+function Esperar-Estabilidad {
+    param([string[]]$EstadoInicial)
+
+    Start-Sleep -Seconds 3
+    $confirmacion = @(git status --porcelain)
+    return $LASTEXITCODE -eq 0 -and
+        (($confirmacion -join "`n") -eq ($EstadoInicial -join "`n"))
 }
 
 function Sincronizar {
+    $bloqueoCreado = $false
     try {
-        Write-Host "`n[$(Get-Date -Format 'HH:mm:ss')] Validando cambios..." -ForegroundColor Cyan
+        # Evita que dos terminales o dos ciclos del watcher sincronicen a la vez.
+        New-Item -Path $archivoBloqueo -ItemType File -ErrorAction Stop | Out-Null
+        $bloqueoCreado = $true
+
+        Write-Host "`n[$(Get-Date -Format 'HH:mm:ss')] Actualizando desde GitHub..." -ForegroundColor Cyan
+        git pull --rebase --autostash origin main
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "No se pudo actualizar desde GitHub. Revisa los conflictos antes de continuar."
+            return
+        }
+
+        $pendientes = @(git status --porcelain)
+        if ($LASTEXITCODE -ne 0) { throw "No se pudo revisar el estado del repositorio." }
+        if ($pendientes.Count -eq 0) {
+            Write-Host "No hay cambios pendientes para sincronizar." -ForegroundColor DarkGray
+            return
+        }
+
+        Write-Host "Validando cambios..." -ForegroundColor Cyan
         node .\tools\verificar-datos.js
         if ($LASTEXITCODE -ne 0) {
             Write-Warning "La validación falló. No se creó ningún commit ni se subió ningún cambio."
@@ -29,9 +48,9 @@ function Sincronizar {
         git add -A
         if ($LASTEXITCODE -ne 0) { throw "No se pudo preparar el commit." }
 
-        $hayCambios = git diff --cached --quiet
+        git diff --cached --quiet
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "No hay cambios pendientes para sincronizar." -ForegroundColor DarkGray
+            Write-Host "No hay cambios preparados para sincronizar." -ForegroundColor DarkGray
             return
         }
 
@@ -39,25 +58,22 @@ function Sincronizar {
         git commit -m $mensaje
         if ($LASTEXITCODE -ne 0) { throw "No se pudo crear el commit." }
 
-        git pull --rebase origin main
+        git push origin main
         if ($LASTEXITCODE -ne 0) {
-            Write-Warning "El commit quedó local porque no se pudo integrar el remoto automáticamente. Resuelve el conflicto antes de continuar."
+            Write-Warning "El commit quedó local porque no se pudo subir. Ejecuta git pull --rebase y vuelve a intentar."
             return
         }
-
-        git push origin main
-        if ($LASTEXITCODE -ne 0) { throw "No se pudo subir el commit." }
 
         Write-Host "Sincronización completada con GitHub." -ForegroundColor Green
     }
     catch {
         Write-Warning $_.Exception.Message
     }
-}
-
-function Hay-Cambios-Pendientes {
-    git status --porcelain
-    return $LASTEXITCODE -eq 0 -and $null -ne $output -and $output.Count -gt 0
+    finally {
+        if ($bloqueoCreado -and (Test-Path $archivoBloqueo)) {
+            Remove-Item -Force $archivoBloqueo -ErrorAction SilentlyContinue
+        }
+    }
 }
 
 Write-Host "Sincronización automática activa para: $raiz" -ForegroundColor Green
@@ -65,13 +81,10 @@ Write-Host "Revisa cambios cada 5 segundos; antes de subir espera 3 segundos de 
 Write-Host "Pulsa Ctrl+C para detenerla."
 
 while ($true) {
-    $output = @(git status --porcelain)
+    $cambios = @(git status --porcelain)
 
-    if ($LASTEXITCODE -eq 0 -and $output.Count -gt 0) {
-        Start-Sleep -Seconds 3
-        $confirmacion = @(git status --porcelain)
-
-        if ($LASTEXITCODE -eq 0 -and ($confirmacion -join "`n") -eq ($output -join "`n")) {
+    if ($LASTEXITCODE -eq 0 -and $cambios.Count -gt 0) {
+        if (Esperar-Estabilidad $cambios) {
             Sincronizar
         }
     }

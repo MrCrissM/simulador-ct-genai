@@ -85,6 +85,38 @@ h2 { font-size: 1.05rem; margin: 1.4rem 0 0.5rem; }
 .reglas li { margin: 0.25rem 0; }
 .check { display: flex; gap: 0.5rem; align-items: flex-start; margin: 0.8rem 0; }
 .acciones { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.4rem; }
+.cuenta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.7rem;
+  margin: -0.15rem 0 1rem;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+.cuenta strong { color: var(--tinta); }
+.cuenta button { padding: 0.35rem 0.65rem; font-size: 0.85rem; }
+.acceso { max-width: 480px; }
+.form-acceso { display: grid; gap: 0.8rem; margin-top: 1.2rem; }
+.form-acceso label { display: grid; gap: 0.32rem; font-weight: 650; }
+.form-acceso input {
+  width: 100%;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 0.62rem 0.7rem;
+  color: var(--tinta);
+  background: var(--papel);
+}
+.form-acceso input:focus { outline: 2px solid var(--azul); outline-offset: 1px; }
+.form-acceso button { justify-self: start; margin-top: 0.2rem; }
+.aviso-acceso {
+  border: 1px solid var(--aviso-linea);
+  background: var(--aviso-fondo);
+  color: var(--aviso);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+}
 .modos { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 0.3rem 0 0.2rem; }
 button.modo {
   text-align: left;
@@ -266,6 +298,7 @@ body.modal-abierto { overflow: hidden; }
   .mapa { position: sticky; top: 0; background: var(--fondo); padding-bottom: 0.4rem; z-index: 2; }
   .panel { margin: 0.6rem; }
   .modos { grid-template-columns: 1fr; }
+  .cuenta { justify-content: flex-start; margin-top: 0.2rem; }
   .historial li.intento { grid-template-columns: 1fr auto; }
   .historial li.intento em { grid-column: 1; }
   .historial li.intento .intento-acciones { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; align-items: stretch; }
