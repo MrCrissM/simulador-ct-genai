@@ -149,10 +149,10 @@ create policy "intentos: solo administrar actualiza"
 
 drop policy if exists "intentos: eliminar propios o administrar" on public.intentos;
 drop policy if exists "intentos: solo administrar elimina" on public.intentos;
-create policy "intentos: solo administrar elimina"
+create policy "intentos: eliminar propios o administrar"
   on public.intentos for delete
   to authenticated
-  using (public.es_admin());
+  using (usuario_id = auth.uid() or public.es_admin());
 
 -- Ranking público opcional: expone solo los campos necesarios, nunca respuestas ni detalle.
 create or replace function public.resultados_publicados()

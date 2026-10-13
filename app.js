@@ -106,15 +106,30 @@
 
   async function guardarIntentoRemoto(intento) {
     if (!clienteSupabase || !usuarioActual) return;
-    var resultado = await clienteSupabase.from("intentos").insert(intentoParaSupabase(intento));
-    if (resultado.error) console.warn("No se pudo guardar el intento en Supabase.", resultado.error.message);
+    var resultado = await clienteSupabase
+      .from("intentos")
+      .insert(intentoParaSupabase(intento))
+      .select("id")
+      .single();
+    if (resultado.error) {
+      console.warn("No se pudo guardar el intento en Supabase.", resultado.error.message);
+      return;
+    }
+    intento._remotoId = resultado.data.id;
+    var firma = firmaIntento(intento);
+    var historial = leerHistorial();
+    historial.forEach(function (item) {
+      if (firmaIntento(item) === firma) item._remotoId = resultado.data.id;
+    });
+    escribirHistorial(historial);
   }
 
   async function cargarHistorialRemoto(forzar) {
     if (!clienteSupabase || !usuarioActual || (historialRemotoCargado && !forzar)) return false;
     var respuesta = await clienteSupabase
       .from("intentos")
-      .select("detalle, finalizado_en")
+      .select("id, detalle, finalizado_en")
+      .eq("usuario_id", usuarioActual.id)
       .order("finalizado_en", { ascending: false })
       .limit(20);
     if (respuesta.error) {
@@ -123,11 +138,40 @@
     }
     var intentos = respuesta.data.map(function (fila) {
       var detalle = fila.detalle || {};
+      detalle._remotoId = fila.id;
       if (!detalle.fecha) detalle.fecha = fechaRemota(fila.finalizado_en);
       return detalle;
     }).filter(intentoValido);
     escribirHistorial(intentos);
     historialRemotoCargado = true;
+    return true;
+  }
+
+  async function eliminarIntentoRemoto(intento) {
+    if (!intento._remotoId) return false;
+    var respuesta = await clienteSupabase
+      .from("intentos")
+      .delete()
+      .eq("id", intento._remotoId)
+      .eq("usuario_id", usuarioActual.id);
+    if (respuesta.error) {
+      console.warn("No se pudo eliminar el intento en Supabase.", respuesta.error.message);
+      window.alert("No se pudo eliminar el intento de tu cuenta. Revisa la conexión e inténtalo nuevamente.");
+      return false;
+    }
+    return true;
+  }
+
+  async function eliminarTodoElHistorialRemoto() {
+    var respuesta = await clienteSupabase
+      .from("intentos")
+      .delete()
+      .eq("usuario_id", usuarioActual.id);
+    if (respuesta.error) {
+      console.warn("No se pudo borrar el historial de Supabase.", respuesta.error.message);
+      window.alert("No se pudo borrar el historial de tu cuenta. Revisa la conexión e inténtalo nuevamente.");
+      return false;
+    }
     return true;
   }
 
@@ -137,10 +181,9 @@
     canalHistorial = clienteSupabase
       .channel("historial-" + usuarioActual.id)
       .on("postgres_changes", {
-        event: "INSERT",
+        event: "*",
         schema: "public",
-        table: "intentos",
-        filter: "usuario_id=eq." + usuarioActual.id
+        table: "intentos"
       }, async function () {
         await cargarHistorialRemoto(true);
         if (document.querySelector(".inicio")) pantallaInicio();
@@ -1039,20 +1082,38 @@
       });
     });
     nodo.querySelectorAll(".eliminar").forEach(function (b) {
-      b.addEventListener("click", function () {
+      b.addEventListener("click", async function () {
         var i = Number(b.getAttribute("data-i"));
         var intento = hist[i];
         if (!intento) return;
-        if (!window.confirm("¿Eliminar del historial el intento del " + intento.fecha + " (" + intento.puntos + "/" + TOTAL_PUNTOS + ")? No se puede deshacer.")) return;
+        if (!window.confirm("¿Eliminar de todos tus dispositivos el intento del " + intento.fecha + " (" + intento.puntos + "/" + TOTAL_PUNTOS + ")? No se puede deshacer.")) return;
+        b.disabled = true;
+        if (!intento._remotoId) {
+          await cargarHistorialRemoto(true);
+          pantallaInicio();
+          window.alert("El historial se actualizó para localizar el intento. Pulsa «Eliminar» nuevamente.");
+          return;
+        }
+        if (!await eliminarIntentoRemoto(intento)) {
+          b.disabled = false;
+          return;
+        }
         var resto = hist.slice(0, i).concat(hist.slice(i + 1));
         escribirHistorial(resto);
         pantallaInicio();
       });
     });
     var borrar = nodo.querySelector("#borrar-hist");
-    if (borrar) borrar.addEventListener("click", function () {
+    if (borrar) borrar.addEventListener("click", async function () {
       var n = hist.length;
-      if (!window.confirm("¿Borrar los " + n + (n === 1 ? " intento" : " intentos") + " del historial de este navegador? No se puede deshacer. Si quieres conservarlos, descárgalos antes.")) return;
+      if (!window.confirm("¿Borrar los " + n + (n === 1 ? " intento" : " intentos") + " de todos tus dispositivos? No se puede deshacer. Si quieres conservarlos, descárgalos antes.")) return;
+      borrar.disabled = true;
+      borrar.textContent = "Borrando…";
+      if (!await eliminarTodoElHistorialRemoto()) {
+        borrar.disabled = false;
+        borrar.textContent = "Borrar todo el historial";
+        return;
+      }
       escribirHistorial([]);
       pantallaInicio();
     });
