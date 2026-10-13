@@ -64,6 +64,7 @@
   var usuarioActual = null;
   var perfilActual = null;
   var historialRemotoCargado = false;
+  var canalHistorial = null;
 
   function iniciarSupabase() {
     var cfg = window.CTGENAI_SUPABASE;
@@ -109,8 +110,8 @@
     if (resultado.error) console.warn("No se pudo guardar el intento en Supabase.", resultado.error.message);
   }
 
-  async function cargarHistorialRemoto() {
-    if (!clienteSupabase || !usuarioActual || historialRemotoCargado) return;
+  async function cargarHistorialRemoto(forzar) {
+    if (!clienteSupabase || !usuarioActual || (historialRemotoCargado && !forzar)) return false;
     var respuesta = await clienteSupabase
       .from("intentos")
       .select("detalle, finalizado_en")
@@ -118,7 +119,7 @@
       .limit(20);
     if (respuesta.error) {
       console.warn("No se pudo cargar el historial de Supabase.", respuesta.error.message);
-      return;
+      return false;
     }
     var intentos = respuesta.data.map(function (fila) {
       var detalle = fila.detalle || {};
@@ -127,6 +128,24 @@
     }).filter(intentoValido);
     escribirHistorial(intentos);
     historialRemotoCargado = true;
+    return true;
+  }
+
+  function instalarActualizacionHistorial() {
+    if (!clienteSupabase || !usuarioActual) return;
+    if (canalHistorial) clienteSupabase.removeChannel(canalHistorial);
+    canalHistorial = clienteSupabase
+      .channel("historial-" + usuarioActual.id)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "intentos",
+        filter: "usuario_id=eq." + usuarioActual.id
+      }, async function () {
+        await cargarHistorialRemoto(true);
+        if (document.querySelector(".inicio")) pantallaInicio();
+      })
+      .subscribe();
   }
 
   function cabeceraCuenta() {
@@ -140,6 +159,8 @@
   async function cerrarSesion() {
     pararReloj();
     sessionStorage.removeItem(CLAVE_SESION);
+    if (canalHistorial && clienteSupabase) await clienteSupabase.removeChannel(canalHistorial);
+    canalHistorial = null;
     if (clienteSupabase) await clienteSupabase.auth.signOut();
     usuarioActual = null;
     perfilActual = null;
@@ -193,6 +214,7 @@
     }
     perfilActual = respuesta.data;
     await cargarHistorialRemoto();
+    instalarActualizacionHistorial();
     if (!restaurar()) pantallaInicio();
   }
 
@@ -989,6 +1011,7 @@
         "<h2>Intentos anteriores</h2>" +
         "<p class='nota-hist'>Tus intentos terminados se guardan en tu cuenta y se sincronizan entre dispositivos. También puedes descargar una copia local del historial; el archivo incluye el examen en pausa, si hay uno.</p>" +
         "<div class='acciones'>" +
+          "<button type='button' id='actualizar-hist'>Actualizar historial</button>" +
           "<button type='button' id='descargar-hist'>Descargar historial</button>" +
           "<button type='button' id='traer-hist'>Traer historial</button>" +
           (hist.length ? "<button type='button' class='peligro' id='borrar-hist'>Borrar todo el historial</button>" : "") +
@@ -1043,6 +1066,19 @@
     }
     nodo.querySelector("#modo-real").addEventListener("click", function () { arrancarNuevo("real"); });
     nodo.querySelector("#modo-prueba").addEventListener("click", function () { arrancarNuevo("prueba"); });
+    var actualizar = nodo.querySelector("#actualizar-hist");
+    actualizar.addEventListener("click", async function () {
+      actualizar.disabled = true;
+      actualizar.textContent = "Actualizando…";
+      var actualizado = await cargarHistorialRemoto(true);
+      if (actualizado) {
+        pantallaInicio();
+      } else {
+        actualizar.disabled = false;
+        actualizar.textContent = "Actualizar historial";
+        window.alert("No se pudo actualizar el historial. Revisa tu conexión e inténtalo nuevamente.");
+      }
+    });
     nodo.querySelector("#descargar-hist").addEventListener("click", descargarHistorial);
     var archivo = nodo.querySelector("#archivo-hist");
     nodo.querySelector("#traer-hist").addEventListener("click", function () { archivo.click(); });
