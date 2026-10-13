@@ -66,6 +66,10 @@
   var historialRemotoCargado = false;
   var canalHistorial = null;
 
+  function clavePorUsuario(clave) {
+    return clave + ":" + (usuarioActual && usuarioActual.id ? usuarioActual.id : "sin-sesion");
+  }
+
   function iniciarSupabase() {
     var cfg = window.CTGENAI_SUPABASE;
     if (!cfg || !cfg.url || !cfg.publishableKey || !window.supabase) return false;
@@ -201,7 +205,7 @@
 
   async function cerrarSesion() {
     pararReloj();
-    sessionStorage.removeItem(CLAVE_SESION);
+    sessionStorage.removeItem(clavePorUsuario(CLAVE_SESION));
     if (canalHistorial && clienteSupabase) await clienteSupabase.removeChannel(canalHistorial);
     canalHistorial = null;
     if (clienteSupabase) await clienteSupabase.auth.signOut();
@@ -584,13 +588,13 @@
     /* Cada intento guarda el examen completo; si el navegador se queda sin espacio, se sueltan los más antiguos. */
     while (h.length) {
       try {
-        localStorage.setItem(CLAVE_HIST, JSON.stringify(h));
+        localStorage.setItem(clavePorUsuario(CLAVE_HIST), JSON.stringify(h));
         return h.length;
       } catch (e) {
         h.pop();
       }
     }
-    try { localStorage.removeItem(CLAVE_HIST); } catch (e) {}
+    try { localStorage.removeItem(clavePorUsuario(CLAVE_HIST)); } catch (e) {}
     return 0;
   }
 
@@ -601,18 +605,18 @@
   }
 
   function leerHistorial() {
-    try { return JSON.parse(localStorage.getItem(CLAVE_HIST)) || []; }
+    try { return JSON.parse(localStorage.getItem(clavePorUsuario(CLAVE_HIST))) || []; }
     catch (e) { return []; }
   }
 
   function persistir() {
     if (!estado) return;
-    sessionStorage.setItem(CLAVE_SESION, JSON.stringify(estado));
+    sessionStorage.setItem(clavePorUsuario(CLAVE_SESION), JSON.stringify(estado));
   }
 
   function leerPausado() {
     try {
-      var p = JSON.parse(localStorage.getItem(CLAVE_PAUSA));
+      var p = JSON.parse(localStorage.getItem(clavePorUsuario(CLAVE_PAUSA)));
       return p && p.preguntas && p.respuestas && typeof p.restante === "number" ? p : null;
     } catch (e) { return null; }
   }
@@ -702,7 +706,7 @@
       var misma = actual && JSON.stringify(actual.preguntas) === JSON.stringify(datos.pausado.preguntas) && JSON.stringify(actual.respuestas) === JSON.stringify(datos.pausado.respuestas);
       if (!actual) {
         try {
-          localStorage.setItem(CLAVE_PAUSA, JSON.stringify(datos.pausado));
+          localStorage.setItem(clavePorUsuario(CLAVE_PAUSA), JSON.stringify(datos.pausado));
           avisoPausa = " También se trajo el examen en pausa.";
         } catch (e) {
           avisoPausa = " No se pudo guardar el examen en pausa: falta espacio.";
@@ -710,7 +714,7 @@
       } else if (!misma) {
         if (window.confirm("En este dispositivo ya hay un examen en pausa. ¿Reemplazarlo por el que viene en el archivo?")) {
           try {
-            localStorage.setItem(CLAVE_PAUSA, JSON.stringify(datos.pausado));
+            localStorage.setItem(clavePorUsuario(CLAVE_PAUSA), JSON.stringify(datos.pausado));
             avisoPausa = " Se reemplazó el examen en pausa por el del archivo.";
           } catch (e) {
             avisoPausa = " No se pudo guardar el examen en pausa: falta espacio.";
@@ -985,7 +989,7 @@
   function pantallaInicio() {
     pararReloj();
     estado = null;
-    sessionStorage.removeItem(CLAVE_SESION);
+    sessionStorage.removeItem(clavePorUsuario(CLAVE_SESION));
     var hist = leerHistorial();
     var pausado = leerPausado();
     var filas = hist.length
@@ -1071,8 +1075,8 @@
     var descartar = nodo.querySelector("#descartar-pausa");
     if (descartar) descartar.addEventListener("click", function () {
       if (window.confirm("¿Descartar el examen en pausa? No se guardará ningún resultado.")) {
-        localStorage.removeItem(CLAVE_PAUSA);
-        pantallaInicio();
+      localStorage.removeItem(clavePorUsuario(CLAVE_PAUSA));
+      pantallaInicio();
       }
     });
     nodo.querySelectorAll(".revisar").forEach(function (b) {
@@ -1166,14 +1170,14 @@
     copia.fechaPausa = new Date().toLocaleString("es");
     delete copia.fin;
     try {
-      localStorage.setItem(CLAVE_PAUSA, JSON.stringify(copia));
+        localStorage.setItem(clavePorUsuario(CLAVE_PAUSA), JSON.stringify(copia));
     } catch (e) {
       window.alert("No se pudo guardar el examen en pausa: el navegador no tiene espacio. El examen sigue en curso.");
       arrancarReloj();
       return;
     }
     estado = null;
-    sessionStorage.removeItem(CLAVE_SESION);
+    sessionStorage.removeItem(clavePorUsuario(CLAVE_SESION));
     pantallaInicio();
   }
 
@@ -1184,7 +1188,7 @@
     estado.fin = Date.now() + estado.restante * 1000;
     delete estado.restante;
     delete estado.fechaPausa;
-    localStorage.removeItem(CLAVE_PAUSA);
+    localStorage.removeItem(clavePorUsuario(CLAVE_PAUSA));
     persistir();
     if (restantes() <= 0) { cerrarExamen(true); return; }
     pintarExamen();
@@ -1445,7 +1449,7 @@
     };
     guardarHistorial(intento);
     guardarIntentoRemoto(intento);
-    sessionStorage.removeItem(CLAVE_SESION);
+    sessionStorage.removeItem(clavePorUsuario(CLAVE_SESION));
     pintarResultado(intento, true);
   }
 
@@ -1525,7 +1529,7 @@
   }
 
   function restaurar() {
-    var crudo = sessionStorage.getItem(CLAVE_SESION);
+    var crudo = sessionStorage.getItem(clavePorUsuario(CLAVE_SESION));
     if (!crudo) return false;
     try { estado = JSON.parse(crudo); }
     catch (e) { return false; }
