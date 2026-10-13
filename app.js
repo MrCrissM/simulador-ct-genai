@@ -451,7 +451,7 @@
     nodo.querySelector("#ver-usuarios").addEventListener("click", mostrarUsuariosAdmin);
     var respuesta = await clienteSupabase
       .from("intentos")
-      .select("id, puntos, puntos_totales, aprobado, incompleto, modo, respondidas, creado_en, finalizado_en, publicado, alias_publico, perfiles(nombre)")
+      .select("id, puntos, puntos_totales, aprobado, incompleto, modo, respondidas, creado_en, finalizado_en, publicado, alias_publico, detalle, perfiles(nombre)")
       .order("finalizado_en", { ascending: false });
     var carga = nodo.querySelector("#cargando-admin");
     if (respuesta.error) {
@@ -468,10 +468,21 @@
           " · " + i.respondidas + "/40 respondidas</small></span>" +
         "<strong>" + (i.puntos == null ? "—" : i.puntos + "/" + i.puntos_totales) + "</strong>" +
         "<em class='" + (i.aprobado ? "ok" : "mal") + "'>" + estadoIntento + "</em>" +
-        "<span class='intento-acciones'><button type='button' class='publicar' data-id='" + i.id + "' data-publicado='" + i.publicado + "' data-alias='" + encodeURIComponent(perfil.nombre || "Participante") + "'>" +
+        "<span class='intento-acciones'><button type='button' class='revisar-admin' data-i='" + respuesta.data.indexOf(i) + "'>Revisar examen</button>" +
+          "<button type='button' class='publicar' data-id='" + i.id + "' data-publicado='" + i.publicado + "' data-alias='" + encodeURIComponent(perfil.nombre || "Participante") + "'>" +
           (i.publicado ? "Ocultar" : "Publicar") + "</button></span></li>";
     }).join("") : "<p class='vacio'>Aún no hay resultados guardados.</p>";
     nodo.querySelector("#lista-admin").innerHTML = "<ul class='historial'>" + filas + "</ul>";
+    nodo.querySelectorAll(".revisar-admin").forEach(function (boton) {
+      boton.addEventListener("click", function () {
+        var intento = respuesta.data[Number(boton.getAttribute("data-i"))];
+        if (!intento || !intento.detalle || !intentoValido(intento.detalle)) {
+          window.alert("Este intento no tiene el detalle completo disponible para revisar.");
+          return;
+        }
+        pintarResultado(intento.detalle, false);
+      });
+    });
     nodo.querySelectorAll(".publicar").forEach(function (boton) {
       boton.addEventListener("click", async function () {
         var publicar = boton.getAttribute("data-publicado") !== "true";
