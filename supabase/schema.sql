@@ -39,7 +39,13 @@ create index if not exists intentos_publicados_idx
 
 -- Publica los nuevos intentos para que los demás dispositivos del mismo
 -- usuario actualicen el historial al instante mediante Supabase Realtime.
-alter publication supabase_realtime add table public.intentos;
+do $$
+begin
+  alter publication supabase_realtime add table public.intentos;
+exception
+  when duplicate_object then null;
+end;
+$$;
 
 alter table public.perfiles enable row level security;
 alter table public.intentos enable row level security;
