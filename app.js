@@ -465,7 +465,9 @@
       return "<li class='intento'>" +
         "<span class='intento-fecha'><strong>" + escapar(perfil.nombre || "Participante") + "</strong><small>" +
           escapar(fechaRemota(i.finalizado_en || i.creado_en)) + " · " + escapar(nombreModo(i.modo)) +
-          " · " + i.respondidas + "/40 respondidas</small></span>" +
+          " · " + i.respondidas + "/40 respondidas" +
+          (i.detalle && typeof i.detalle.segundosUsados === "number" ? " · " + formatear(i.detalle.segundosUsados) + " utilizados" : "") +
+          "</small></span>" +
         "<strong>" + (i.puntos == null ? "—" : i.puntos + "/" + i.puntos_totales) + "</strong>" +
         "<em class='" + (i.aprobado ? "ok" : "mal") + "'>" + estadoIntento + "</em>" +
         "<span class='intento-acciones'><button type='button' class='revisar-admin' data-i='" + respuesta.data.indexOf(i) + "'>Revisar examen</button>" +
@@ -571,7 +573,7 @@
   function htmlLista(p) {
     if (!p.lista || !p.lista.length) return "";
     return "<ol class='lista'>" + p.lista.map(function (item) {
-      return "<li><span class='rotulo'>" + escapar(item[0]) + ".</span><span>" + escapar(item[1]) + "</span></li>";
+      return "<li><span class='rotulo'>" + escapar(item[0]) + ".</span><span>" + terminologia(item[1]) + "</span></li>";
     }).join("") + "</ol>";
   }
 
@@ -764,10 +766,28 @@
   }
 
   function escapar(t) {
+    var amp = String.fromCharCode(38);
     return String(t)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+      .replace(/&/g, amp + "amp;")
+      .replace(/</g, amp + "lt;")
+      .replace(/>/g, amp + "gt;");
+  }
+
+  function terminologia(t) {
+    var texto = escapar(t);
+    var terminos = [
+      [/ventana de contexto/gi, "ventana de contexto <span class='termino-en' lang='en'>(context window)</span>"],
+      [/biblioteca digital/gi, "biblioteca digital <span class='termino-en' lang='en'>(digital library)</span>"],
+      [/oráculos/gi, "oráculos <span class='termino-en' lang='en'>(test oracles)</span>"],
+      [/oráculo/gi, "oráculo <span class='termino-en' lang='en'>(test oracle)</span>"],
+      [/variación entre corridas/gi, "variación entre corridas <span class='termino-en' lang='en'>(variation between runs)</span>"],
+      [/distribución de probabilidad/gi, "distribución de probabilidad <span class='termino-en' lang='en'>(probability distribution)</span>"],
+      [/temperatura/gi, "temperatura <span class='termino-en' lang='en'>(temperature)</span>"]
+    ];
+    terminos.forEach(function (termino) {
+      texto = texto.replace(termino[0], termino[1]);
+    });
+    return texto;
   }
 
   function mostrar(nodo) {
@@ -1008,6 +1028,7 @@
           var revisable = h.preguntas && h.respuestas;
           var etiqueta = h.incompleto ? "Incompleto" : (h.aprobado ? "Aprobado" : "No aprobado");
           var detalle = escapar(nombreModo(h.modo));
+          if (typeof h.segundosUsados === "number") detalle += " · " + formatear(h.segundosUsados) + " utilizados";
           if (h.porTiempo) detalle += " · tiempo agotado";
           else if (h.incompleto) detalle += " · terminado sin completar";
           return "<li class='intento'>" +
@@ -1176,6 +1197,9 @@
   function pausar() {
     if (!estado || estado.cerrado) return;
     pararReloj();
+    estado.segundosAcumulados = (estado.segundosAcumulados || 0) +
+      Math.max(0, Math.round((Date.now() - estado.inicioTramo) / 1000));
+    estado.inicioTramo = null;
     var copia = JSON.parse(JSON.stringify(estado));
     copia.restante = Math.max(0, restantes());
     copia.fechaPausa = new Date().toLocaleString("es");
@@ -1183,6 +1207,7 @@
     try {
         localStorage.setItem(clavePorUsuario(CLAVE_PAUSA), JSON.stringify(copia));
     } catch (e) {
+      estado.inicioTramo = Date.now();
       window.alert("No se pudo guardar el examen en pausa: el navegador no tiene espacio. El examen sigue en curso.");
       arrancarReloj();
       return;
@@ -1197,6 +1222,8 @@
     if (!pausado) { pantallaInicio(); return; }
     estado = pausado;
     estado.fin = Date.now() + estado.restante * 1000;
+    estado.inicioTramo = Date.now();
+    estado.segundosAcumulados = estado.segundosAcumulados || 0;
     delete estado.restante;
     delete estado.fechaPausa;
     localStorage.removeItem(clavePorUsuario(CLAVE_PAUSA));
@@ -1226,6 +1253,8 @@
       marcas: preguntas.map(function () { return false; }),
       indice: 0,
       fin: Date.now() + minutos * 60 * 1000,
+      inicioTramo: Date.now(),
+      segundosAcumulados: 0,
       minutos: minutos,
       cerrado: false
     };
@@ -1236,7 +1265,7 @@
   function htmlPorqueOpcion(p, i) {
     if (!p.porques || !p.porques[i]) return "";
     var correcta = p.correctas.indexOf(i) !== -1;
-    return "<p class='porque-op'><strong>" + (correcta ? "Es correcta. " : "No es correcta. ") + "</strong>" + escapar(p.porques[i]) + "</p>";
+    return "<p class='porque-op'><strong>" + (correcta ? "Es correcta. " : "No es correcta. ") + "</strong>" + terminologia(p.porques[i]) + "</p>";
   }
 
   function htmlCorreccion(p, marca) {
@@ -1245,11 +1274,11 @@
     var detalle = "";
     if (!p.porques) {
       var buenas = p.correctas.map(function (i) {
-        return "<li><span class='letra'>" + letra(i) + "</span><span>" + escapar(p.opciones[i]) + "</span></li>";
+        return "<li><span class='letra'>" + letra(i) + "</span><span>" + terminologia(p.opciones[i]) + "</span></li>";
       }).join("");
       detalle = "<p>" + (p.correctas.length > 1 ? "Las respuestas correctas son:" : "La respuesta correcta es:") + "</p>" +
         "<ul class='correctas-lista'>" + buenas + "</ul>" +
-        "<p class='porque'><strong>Por qué. </strong>" + escapar(p.porque) + "</p>";
+        "<p class='porque'><strong>Por qué. </strong>" + terminologia(p.porque) + "</p>";
     }
     return "<div class='correccion " + (bien ? "ok" : "mal") + "' id='correccion' role='status'>" +
       "<p class='correccion-titulo'>" + (bien ? "Correcta" : "Incorrecta") + "</p>" +
@@ -1277,7 +1306,7 @@
       }
       return "<div class='opcion-bloque'><label class='" + cls + "'>" +
         "<input type='" + tipo + "' name='op' value='" + i + "'" + (activo ? " checked" : "") + (revelada ? " disabled" : "") + ">" +
-        "<span class='letra'>" + letra(i) + "</span><span>" + escapar(texto) + "</span></label>" +
+        "<span class='letra'>" + letra(i) + "</span><span>" + terminologia(texto) + "</span></label>" +
         (revelada ? htmlPorqueOpcion(p, i) : "") + "</div>";
     }).join("");
 
@@ -1322,7 +1351,7 @@
           "<nav class='mapa' aria-label='Preguntas'>" + celdas + "</nav>" +
           "<article class='pregunta'>" +
             "<p class='lo'>" + escapar(cap) + " · GenAI-" + escapar(p.lo) + "</p>" +
-            "<h1>" + escapar(p.enunciado) + "</h1>" +
+            "<h1>" + terminologia(p.enunciado) + "</h1>" +
             htmlLista(p) +
             "<p class='aviso'>" + aviso + "</p>" +
             "<div class='opciones'>" + opciones + "</div>" +
@@ -1446,6 +1475,11 @@
     estado.cerrado = true;
     pararReloj();
     var resultado = puntuar(estado.preguntas, estado.respuestas);
+    var segundosUsados = Math.min(
+      estado.minutos * 60,
+      (estado.segundosAcumulados || 0) +
+        Math.max(0, Math.round((Date.now() - (estado.inicioTramo || Date.now())) / 1000))
+    );
     var intento = {
       fecha: new Date().toLocaleString("es"),
       puntos: resultado.puntos,
@@ -1453,6 +1487,7 @@
       porTiempo: porTiempo,
       incompleto: !!terminadoAntes,
       respondidas: contarRespondidas(estado.respuestas),
+      segundosUsados: segundosUsados,
       modo: estado.modo,
       minutos: estado.minutos,
       preguntas: estado.preguntas,
@@ -1490,15 +1525,15 @@
       var buenas = p.correctas.map(letra).join(", ");
       var ops = p.opciones.map(function (t, k) {
         var cls = p.correctas.indexOf(k) !== -1 ? "buena" : (d.marca.indexOf(k) !== -1 ? "mala" : "");
-        return "<li class='" + cls + "'><div class='op-linea'><span class='letra'>" + letra(k) + "</span><span>" + escapar(t) + "</span></div>" + htmlPorqueOpcion(p, k) + "</li>";
+        return "<li class='" + cls + "'><div class='op-linea'><span class='letra'>" + letra(k) + "</span><span>" + terminologia(t) + "</span></div>" + htmlPorqueOpcion(p, k) + "</li>";
       }).join("");
       var cierre = (p.porques && p.porques.length)
         ? ""
-        : "<p class='porque'><strong>Por qué. </strong>" + escapar(p.porque) + "</p>";
+        : "<p class='porque'><strong>Por qué. </strong>" + terminologia(p.porque) + "</p>";
       return "<details" + (d.bien ? "" : " open") + ">" +
         "<summary><span class='pill " + (d.bien ? "ok" : "mal") + "'>" + (d.bien ? "Bien" : "Mal") + "</span> " +
         (i + 1) + ". GenAI-" + escapar(p.lo) + " · " + p.k + " · " + p.puntos + " pt · su respuesta: " + suyas + " · correcta: " + buenas + "</summary>" +
-        "<p>" + escapar(p.enunciado) + "</p>" + htmlLista(p) + "<ol class='repaso-ops'>" + ops + "</ol>" + cierre + htmlSilabo(p) + "</details>";
+        "<p>" + terminologia(p.enunciado) + "</p>" + htmlLista(p) + "<ol class='repaso-ops'>" + ops + "</ol>" + cierre + htmlSilabo(p) + "</details>";
     }).join("");
 
     var cierreTxt = porTiempo ? "el tiempo se agotó" : (intento.incompleto ? "terminado sin completar" : "entregado");
@@ -1512,6 +1547,9 @@
     var notaExtra = intento.incompleto
       ? " · " + respondidas + " de 40 respondidas" + (resultado.aprobado ? " · con lo respondido ya superas el corte" : "")
       : "";
+    var tiempoUsado = typeof intento.segundosUsados === "number"
+      ? " · tiempo utilizado: " + formatear(intento.segundosUsados)
+      : "";
     var acciones = enVivo
       ? "<button class='primario' id='otro' type='button'>Nuevo " + (intento.modo === "prueba" ? "examen de prueba" : "examen real") + "</button><button id='inicio' type='button'>Volver al inicio</button>"
       : "<button class='primario' id='inicio' type='button'>Volver al inicio</button><button id='otro' type='button'>Nuevo " + (intento.modo === "prueba" ? "examen de prueba" : "examen real") + "</button>";
@@ -1521,7 +1559,7 @@
         "<div class='fila-tema'>" + htmlTema() + "</div>" +
         "<p class='kicker'>" + kicker + "</p>" +
         titulo +
-        "<p class='nota'>" + resultado.puntos + " / " + TOTAL_PUNTOS + " puntos · el corte es " + CORTE + notaExtra + "</p>" +
+        "<p class='nota'>" + resultado.puntos + " / " + TOTAL_PUNTOS + " puntos · el corte es " + CORTE + notaExtra + tiempoUsado + "</p>" +
         "<h2>Por capítulo</h2><ul class='historial'>" + filasCap + "</ul>" +
         "<div class='acciones'>" + acciones + "</div>" +
         "<h2>Repaso</h2>" + repaso +

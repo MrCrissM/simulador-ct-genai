@@ -1,4 +1,4 @@
-const CACHE = "ct-genai-v8";
+const CACHE = "ct-genai-v9";
 const ARCHIVOS_ESENCIALES = [
   "./",
   "./index.html",
