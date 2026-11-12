@@ -1,9 +1,13 @@
-const CACHE = "ct-genai-v10";
+const CACHE = "ct-genai-v14";
 const ARCHIVOS_ESENCIALES = [
   "./",
   "./index.html",
   "./estilos.css",
   "./banco.js",
+  "./preguntas-exigentes.js",
+  "./preguntas-exigentes-2.js",
+  "./preguntas-exigentes-3.js",
+  "./preguntas-exigentes-4.js",
   "./porques.js",
   "./silabo.js",
   "./supabase-config.js",

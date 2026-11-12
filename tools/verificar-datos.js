@@ -35,6 +35,10 @@ vm.createContext(sandbox);
 
 try {
   cargar("banco.js", sandbox);
+  cargar("preguntas-exigentes.js", sandbox);
+  cargar("preguntas-exigentes-2.js", sandbox);
+  cargar("preguntas-exigentes-3.js", sandbox);
+  cargar("preguntas-exigentes-4.js", sandbox);
   cargar("porques.js", sandbox);
   cargar("silabo.js", sandbox);
   cargar("app.js", sandbox);
@@ -135,6 +139,7 @@ const RONDAS = 200;
 let desviados = 0;
 let repetidos = 0;
 let incompletos = 0;
+let sinExigencia = 0;
 if (typeof armarExamen === "function" && plan.length === 40) {
   const firmaPlan = contarFirmas(plan.map((entrada) => entrada.join("|")));
   for (let ronda = 0; ronda < RONDAS; ronda++) {
@@ -154,10 +159,12 @@ if (typeof armarExamen === "function" && plan.length === 40) {
     });
     if (distinto) desviados++;
     if (new Set(examen.map((pregunta) => pregunta.enunciado)).size !== examen.length) repetidos++;
+    if (examen.some((pregunta) => !pregunta.exigente)) sinExigencia++;
   }
   comprobar(incompletos === 0, `${incompletos} exámenes simulados no tienen 40 preguntas.`);
   comprobar(desviados === 0, `${desviados} de ${RONDAS} exámenes simulados no respetan el nivel K, los puntos o el número de opciones del plan.`);
   comprobar(repetidos === 0, `${repetidos} exámenes simulados repiten un enunciado.`);
+  comprobar(sinExigencia === 0, `${sinExigencia} exámenes simulados incluyen alguna pregunta que no es de la tanda exigente.`);
 }
 
 const fusionarHistoriales = sandbox.CTGenAI && sandbox.CTGenAI.fusionarHistoriales;

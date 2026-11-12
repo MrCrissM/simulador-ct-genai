@@ -937,6 +937,12 @@
   ]
 };
 
+  var extra = window.PORQUES_EXTRA || {};
+  Object.keys(extra).forEach(function (id) {
+    if (PORQUES_POR_ID[id]) throw new Error("Justificación duplicada: " + id);
+    PORQUES_POR_ID[id] = extra[id];
+  });
+
   if (!window.BANCO) { throw new Error("porques.js requiere cargar banco.js antes"); }
 
   var idsVistos = {};

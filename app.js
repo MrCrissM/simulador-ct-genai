@@ -604,10 +604,12 @@
     var recientes = enunciadosRecientes();
     var preguntas = PLAN.map(function (slot) {
       var pool = compatibles(slot);
-      var candidatas = pool.filter(function (p) { return !usados[p._id]; });
-      if (!candidatas.length) candidatas = pool;
-      var frescas = candidatas.filter(function (p) { return !recientes[p.enunciado]; });
-      if (frescas.length) candidatas = frescas;
+      var libres = pool.filter(function (p) { return !usados[p._id]; });
+      if (!libres.length) libres = pool;
+      var exigentes = libres.filter(function (p) { return p.exigente; });
+      var base = exigentes.length ? exigentes : libres;
+      var frescas = base.filter(function (p) { return !recientes[p.enunciado]; });
+      var candidatas = frescas.length ? frescas : base;
       var elegida = barajar(candidatas)[0];
       usados[elegida._id] = true;
       var orden = barajar(elegida.opciones.map(function (_, i) { return i; }));
@@ -622,7 +624,8 @@
         opciones: orden.map(function (i) { return elegida.opciones[i]; }),
         porques: elegida.porques ? orden.map(function (i) { return elegida.porques[i]; }) : null,
         correctas: correctas,
-        porque: elegida.porque
+        porque: elegida.porque,
+        exigente: !!elegida.exigente
       };
     });
     return barajar(preguntas);
@@ -1135,7 +1138,7 @@
         "<p class='kicker'>Práctica · ISTQB CT-GenAI</p>" +
         "<h1>Simulador de examen</h1>" +
         tarjetaPausa +
-        "<p class='lead'>Elige cómo quieres rendir. Cada examen tiene 40 preguntas y el mismo reparto de objetivos, niveles y puntos que el examen de muestra. Salen de un banco de " + (window.BANCO ? window.BANCO.length : 0) + " formulaciones originales. Si acabas de terminar un intento, el siguiente procura no repetir esos enunciados, y baraja el orden y las opciones. No son los ítems oficiales.</p>" +
+        "<p class='lead'>Elige cómo quieres rendir. Cada examen tiene 40 preguntas y el mismo reparto de objetivos, niveles y puntos que el examen de muestra. Salen de un banco de " + (window.BANCO ? window.BANCO.length : 0) + " formulaciones originales. Cada examen prioriza la tanda más exigente: casos concretos y opciones todas verosímiles. Si acabas de terminar un intento, el siguiente procura no repetir esos enunciados, y baraja el orden y las opciones. No son los ítems oficiales.</p>" +
         htmlAvisoSync() +
         "<ul class='reglas'>" +
           "<li><strong>40 preguntas</strong> y <strong>46 puntos</strong>, como el examen.</li>" +
