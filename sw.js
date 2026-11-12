@@ -1,4 +1,4 @@
-const CACHE = "ct-genai-v9";
+const CACHE = "ct-genai-v10";
 const ARCHIVOS_ESENCIALES = [
   "./",
   "./index.html",
@@ -12,8 +12,14 @@ const ARCHIVOS_ESENCIALES = [
   "./favicon-32.png",
   "./icon-180.png",
   "./icon-512.png",
-  "./offline.html"
+  "./offline.html",
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
 ];
+
+function puedeCachear(url) {
+  if (url.origin === self.location.origin) return true;
+  return url.href.indexOf("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@") === 0;
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -42,7 +48,7 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((enCache) => {
       const desdeRed = fetch(event.request)
         .then((respuesta) => {
-          if (respuesta.ok && new URL(event.request.url).origin === self.location.origin) {
+          if (respuesta.ok && puedeCachear(new URL(event.request.url))) {
             const copia = respuesta.clone();
             caches.open(CACHE).then((cache) => cache.put(event.request, copia));
           }

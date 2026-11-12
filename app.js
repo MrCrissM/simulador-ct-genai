@@ -65,6 +65,8 @@
   var perfilActual = null;
   var historialRemotoCargado = false;
   var canalHistorial = null;
+  var avisoSync = "";
+  var subiendoPendientes = false;
 
   function clavePorUsuario(clave) {
     return clave + ":" + (usuarioActual && usuarioActual.id ? usuarioActual.id : "sin-sesion");
@@ -92,10 +94,16 @@
     return isNaN(d.getTime()) ? "" : d.toLocaleString("es");
   }
 
+  function fechaIsoIntento(intento) {
+    if (intento && intento.finalizadoEn) return intento.finalizadoEn;
+    var ms = fechaMs(intento && intento.fecha);
+    return ms ? new Date(ms).toISOString() : new Date().toISOString();
+  }
+
   function intentoParaSupabase(intento) {
     return {
       usuario_id: usuarioActual.id,
-      finalizado_en: new Date().toISOString(),
+      finalizado_en: fechaIsoIntento(intento),
       modo: intento.modo,
       puntos: intento.puntos,
       puntos_totales: TOTAL_PUNTOS,
@@ -109,7 +117,7 @@
   }
 
   async function guardarIntentoRemoto(intento) {
-    if (!clienteSupabase || !usuarioActual) return;
+    if (!clienteSupabase || !usuarioActual || !intento || intento._remotoId) return true;
     var resultado = await clienteSupabase
       .from("intentos")
       .insert(intentoParaSupabase(intento))
@@ -117,7 +125,7 @@
       .single();
     if (resultado.error) {
       console.warn("No se pudo guardar el intento en Supabase.", resultado.error.message);
-      return;
+      return false;
     }
     intento._remotoId = resultado.data.id;
     var firma = firmaIntento(intento);
@@ -126,6 +134,56 @@
       if (firmaIntento(item) === firma) item._remotoId = resultado.data.id;
     });
     escribirHistorial(historial);
+    return true;
+  }
+
+  /* Une la cuenta y este navegador. Si los dos tienen el mismo intento, se queda el que ya tiene id remoto. */
+  function fusionarHistoriales(local, remoto) {
+    var vistos = {};
+    var unidos = [];
+    function meter(h) {
+      if (!intentoValido(h)) return;
+      var firma = firmaIntento(h);
+      var previo = vistos[firma];
+      if (!previo) {
+        vistos[firma] = h;
+        unidos.push(h);
+        return;
+      }
+      if (!previo._remotoId && h._remotoId) {
+        var i = unidos.indexOf(previo);
+        if (i !== -1) unidos[i] = h;
+        vistos[firma] = h;
+      }
+    }
+    (remoto || []).forEach(meter);
+    (local || []).forEach(meter);
+    unidos.sort(function (a, b) { return fechaMs(b.fecha) - fechaMs(a.fecha); });
+    return unidos.slice(0, 20);
+  }
+
+  async function subirIntentosPendientes() {
+    if (subiendoPendientes || !clienteSupabase || !usuarioActual) return;
+    subiendoPendientes = true;
+    try {
+      var pendientes = leerHistorial().filter(function (h) { return intentoValido(h) && !h._remotoId; });
+      var fallo = false;
+      for (var i = 0; i < pendientes.length; i++) {
+        if (pendientes[i]._remotoId) continue;
+        if (!await guardarIntentoRemoto(pendientes[i])) fallo = true;
+      }
+      if (fallo) {
+        avisoSync = "Hay intentos en este navegador que todavía no están en tu cuenta. Revisa la conexión y pulsa «Actualizar historial».";
+      } else if (pendientes.length) {
+        avisoSync = "";
+      }
+    } finally {
+      subiendoPendientes = false;
+    }
+  }
+
+  function htmlAvisoSync() {
+    return avisoSync ? "<p class='aviso-acceso' role='status'>" + escapar(avisoSync) + "</p>" : "";
   }
 
   async function cargarHistorialRemoto(forzar) {
@@ -138,6 +196,7 @@
       .limit(20);
     if (respuesta.error) {
       console.warn("No se pudo cargar el historial de Supabase.", respuesta.error.message);
+      avisoSync = "No se pudo leer el historial de tu cuenta. Se conserva el de este navegador.";
       return false;
     }
     var intentos = respuesta.data.map(function (fila) {
@@ -146,8 +205,10 @@
       if (!detalle.fecha) detalle.fecha = fechaRemota(fila.finalizado_en);
       return detalle;
     }).filter(intentoValido);
-    escribirHistorial(intentos);
+    escribirHistorial(fusionarHistoriales(leerHistorial(), intentos));
     historialRemotoCargado = true;
+    avisoSync = "";
+    await subirIntentosPendientes();
     return true;
   }
 
@@ -187,7 +248,8 @@
       .on("postgres_changes", {
         event: "*",
         schema: "public",
-        table: "intentos"
+        table: "intentos",
+        filter: "usuario_id=eq." + usuarioActual.id
       }, async function () {
         await cargarHistorialRemoto(true);
         if (document.querySelector(".inicio")) pantallaInicio();
@@ -317,11 +379,11 @@
       "<section class='modal modal-crear-usuario' role='dialog' aria-modal='true' aria-labelledby='titulo-crear-usuario'>" +
         "<p class='kicker'>Administración</p>" +
         "<h2 id='titulo-crear-usuario'>Crear usuario</h2>" +
-        "<p>Crea una cuenta con acceso inmediato al simulador.</p>" +
+        "<p>Crea una cuenta con acceso inmediato al simulador. La contraseña debe tener al menos 8 caracteres.</p>" +
         "<form id='form-crear-usuario' class='form-acceso form-crear-usuario'>" +
           "<label>Nombre completo<input id='nombre-usuario' type='text' maxlength='120' autocomplete='name' required></label>" +
           "<label>Correo electrónico<input id='email-usuario' type='email' autocomplete='email' required></label>" +
-          "<label>Contraseña temporal<input id='password-usuario' type='password' minlength='6' autocomplete='new-password' required></label>" +
+          "<label>Contraseña temporal<input id='password-usuario' type='password' minlength='8' autocomplete='new-password' required></label>" +
           "<button class='primario' type='submit'>Crear usuario</button>" +
         "</form>" +
         "<p id='aviso-crear-usuario' class='aviso-crear-usuario' role='status'></p>" +
@@ -439,7 +501,7 @@
         "<div class='acciones'><button type='button' class='primario' id='crear-usuario'>Crear usuario</button>" +
         "<button type='button' id='ver-usuarios'>Ver usuarios</button></div>" +
         "<h2>Resultados de participantes</h2>" +
-        "<p class='lead'>Aquí puedes revisar todos los intentos y decidir cuáles se muestran en el ranking publicado.</p>" +
+        "<p class='lead'>Aquí puedes revisar todos los intentos y decidir cuáles se muestran en el ranking publicado. Los puntos los calcula el navegador al entregar y sirven para seguir la práctica. No son una calificación vigilada: la aplicación no impide que un participante guarde un puntaje distinto del que obtuvo.</p>" +
         "<p id='cargando-admin'>Cargando resultados…</p><div id='lista-admin'></div>" +
         "<div class='acciones'><button type='button' id='volver-admin'>Volver al inicio</button></div>" +
       "</section>"
@@ -519,8 +581,11 @@
     return a;
   }
 
-  function porLo(lo) {
-    return window.BANCO.filter(function (p) { return p.lo === lo; });
+  /* Cada puesto del plan exige objetivo, nivel K, puntos y cuántas opciones se eligen. */
+  function compatibles(slot) {
+    return window.BANCO.filter(function (p) {
+      return p.lo === slot[0] && p.k === slot[1] && p.puntos === slot[2] && p.elegir === slot[3];
+    });
   }
 
   function enunciadosRecientes() {
@@ -538,9 +603,9 @@
     var usados = {};
     var recientes = enunciadosRecientes();
     var preguntas = PLAN.map(function (slot) {
-      var lo = slot[0];
-      var candidatas = porLo(lo).filter(function (p) { return !usados[p._id]; });
-      if (!candidatas.length) candidatas = porLo(lo);
+      var pool = compatibles(slot);
+      var candidatas = pool.filter(function (p) { return !usados[p._id]; });
+      if (!candidatas.length) candidatas = pool;
       var frescas = candidatas.filter(function (p) { return !recientes[p.enunciado]; });
       if (frescas.length) candidatas = frescas;
       var elegida = barajar(candidatas)[0];
@@ -745,7 +810,11 @@
     if (sobraron) msg += " Se conservan los 20 más recientes.";
     var ignorados = datos.historial.length - entrantes.length;
     if (ignorados) msg += " Se ignoraron " + ignorados + (ignorados === 1 ? " registro incompleto." : " registros incompletos.");
+    if (añadidos) msg += " Se copiarán a tu cuenta si hay conexión.";
     window.alert(msg + avisoPausa);
+    subirIntentosPendientes().then(function () {
+      if (document.querySelector(".inicio")) pantallaInicio();
+    });
   }
 
   function formatear(seg) {
@@ -1066,7 +1135,8 @@
         "<p class='kicker'>Práctica · ISTQB CT-GenAI</p>" +
         "<h1>Simulador de examen</h1>" +
         tarjetaPausa +
-        "<p class='lead'>Elige cómo quieres rendir. Cada examen toma 40 preguntas de un banco de " + (window.BANCO ? window.BANCO.length : 0) + " formulaciones originales, una por objetivo de aprendizaje. Si acabas de terminar un intento, el siguiente procura no repetir esas mismas preguntas, y baraja el orden y las opciones. No son los ítems oficiales.</p>" +
+        "<p class='lead'>Elige cómo quieres rendir. Cada examen tiene 40 preguntas y el mismo reparto de objetivos, niveles y puntos que el examen de muestra. Salen de un banco de " + (window.BANCO ? window.BANCO.length : 0) + " formulaciones originales. Si acabas de terminar un intento, el siguiente procura no repetir esos enunciados, y baraja el orden y las opciones. No son los ítems oficiales.</p>" +
+        htmlAvisoSync() +
         "<ul class='reglas'>" +
           "<li><strong>40 preguntas</strong> y <strong>46 puntos</strong>, como el examen.</li>" +
           "<li>Se aprueba con <strong>30 puntos</strong> (65&nbsp;%).</li>" +
@@ -1088,7 +1158,7 @@
         htmlIndiceSilabo() +
         htmlTerminos() +
         "<h2>Intentos anteriores</h2>" +
-        "<p class='nota-hist'>Tus intentos terminados se guardan en tu cuenta y se sincronizan entre dispositivos. También puedes descargar una copia local del historial; el archivo incluye el examen en pausa, si hay uno.</p>" +
+        "<p class='nota-hist'>Tus intentos terminados se guardan en tu cuenta y se sincronizan entre dispositivos. Si traes un archivo, esos intentos también se copian a la cuenta. El archivo incluye el examen en pausa, si hay uno.</p>" +
         "<div class='acciones'>" +
           "<button type='button' id='actualizar-hist'>Actualizar historial</button>" +
           "<button type='button' id='descargar-hist'>Descargar historial</button>" +
@@ -1482,6 +1552,7 @@
     );
     var intento = {
       fecha: new Date().toLocaleString("es"),
+      finalizadoEn: new Date().toISOString(),
       puntos: resultado.puntos,
       aprobado: resultado.aprobado,
       porTiempo: porTiempo,
@@ -1494,9 +1565,19 @@
       respuestas: estado.respuestas
     };
     guardarHistorial(intento);
-    guardarIntentoRemoto(intento);
     sessionStorage.removeItem(clavePorUsuario(CLAVE_SESION));
     pintarResultado(intento, true);
+    guardarIntentoRemoto(intento).then(function (guardado) {
+      if (guardado) return;
+      avisoSync = "El intento quedó en este navegador, pero no se pudo guardar en tu cuenta. Cuando haya conexión, pulsa «Actualizar historial».";
+      var panel = document.querySelector(".resultado");
+      if (panel && !panel.querySelector(".aviso-acceso")) {
+        var nota = panel.querySelector(".nota");
+        if (nota) nota.insertAdjacentHTML("afterend", htmlAvisoSync());
+        return;
+      }
+      if (document.querySelector(".inicio")) pantallaInicio();
+    });
   }
 
   /* Muestra el resultado de un intento: recién entregado (enVivo) o recuperado del historial. */
@@ -1560,6 +1641,7 @@
         "<p class='kicker'>" + kicker + "</p>" +
         titulo +
         "<p class='nota'>" + resultado.puntos + " / " + TOTAL_PUNTOS + " puntos · el corte es " + CORTE + notaExtra + tiempoUsado + "</p>" +
+        htmlAvisoSync() +
         "<h2>Por capítulo</h2><ul class='historial'>" + filasCap + "</ul>" +
         "<div class='acciones'>" + acciones + "</div>" +
         "<h2>Repaso</h2>" + repaso +
@@ -1592,8 +1674,9 @@
     return true;
   }
 
+  window.BANCO.forEach(function (p, i) { p._id = p.lo + "#" + i; });
+
   document.addEventListener("DOMContentLoaded", async function () {
-    window.BANCO.forEach(function (p, i) { p._id = p.lo + "#" + i; });
     instalarIrArriba();
     instalarTema();
     if (!iniciarSupabase()) {
@@ -1605,5 +1688,12 @@
     else pantallaAcceso();
   });
 
-  window.CTGenAI = { PLAN: PLAN, armarExamen: armarExamen, puntuar: puntuar, TOTAL_PUNTOS: TOTAL_PUNTOS, CORTE: CORTE };
+  window.CTGenAI = {
+    PLAN: PLAN,
+    armarExamen: armarExamen,
+    puntuar: puntuar,
+    fusionarHistoriales: fusionarHistoriales,
+    TOTAL_PUNTOS: TOTAL_PUNTOS,
+    CORTE: CORTE
+  };
 })();

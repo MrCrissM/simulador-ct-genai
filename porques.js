@@ -359,10 +359,10 @@
     "El programa sí distingue el agente autónomo del semiautónomo, según cuánta intervención humana haya."
   ],
   "genai-4-2-1-1aas4gk": [
-    "El ajuste fino no borra el conocimiento general ni garantiza que no haya sobreajuste: el sobreajuste sigue siendo un riesgo. Las otras tres descripciones sí son correctas.",
-    "El ajuste fino no borra el conocimiento general ni garantiza que no haya sobreajuste: el sobreajuste sigue siendo un riesgo. Las otras tres descripciones sí son correctas.",
-    "El ajuste fino no borra el conocimiento general ni garantiza que no haya sobreajuste: el sobreajuste sigue siendo un riesgo. Las otras tres descripciones sí son correctas.",
-    "El ajuste fino no borra el conocimiento general ni garantiza que no haya sobreajuste: el sobreajuste sigue siendo un riesgo. Las otras tres descripciones sí son correctas."
+    "Entrenar un modelo ya preentrenado con datos de la tarea es lo que hace el ajuste fino. La afirmación es cierta, así que no es la incorrecta.",
+    "El ajuste fino no sustituye el conocimiento general ni hace desaparecer el sobreajuste. Esta es la afirmación incorrecta.",
+    "Modificar parámetros con datos de un dominio o de una tarea es la definición del ajuste fino. La afirmación es cierta.",
+    "Sin datos de calidad y propios de la tarea, el ajuste puede sesgarse o fallar. La afirmación es cierta."
   ],
   "genai-4-2-1-b8umoi": [
     "El ajuste fino adapta el modelo. No está para borrar el conocimiento general.",
@@ -930,10 +930,10 @@
     "Los roles no se sustituyen por el modelo."
   ],
   "genai-5-2-3-5j0mg0": [
-    "El cambio reparte guía y verificación en quien prueba, y estrategia y riesgos en quien dirige. No convierte a la dirección en ingeniería del modelo ni borra a las personas.",
-    "El cambio reparte guía y verificación en quien prueba, y estrategia y riesgos en quien dirige. No convierte a la dirección en ingeniería del modelo ni borra a las personas.",
-    "El cambio reparte guía y verificación en quien prueba, y estrategia y riesgos en quien dirige. No convierte a la dirección en ingeniería del modelo ni borra a las personas.",
-    "El cambio reparte guía y verificación en quien prueba, y estrategia y riesgos en quien dirige. No convierte a la dirección en ingeniería del modelo ni borra a las personas."
+    "Ese es el reparto: quien prueba guía y verifica las salidas, y quien dirige sigue en la gestión, ahora con estrategia, riesgos y competencias.",
+    "Quien dirige no pasa a programar el modelo ni abandona la gestión.",
+    "Quien prueba sigue revisando. El modelo no cubre el criterio por su cuenta.",
+    "Los roles no se sustituyen por el modelo. Las personas siguen guiando, verificando y dirigiendo."
   ]
 };
 

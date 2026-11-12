@@ -38,9 +38,9 @@ git push -u origin main
 
 En el iPhone o el iPad, abre esa dirección con Safari, pulsa Compartir y elige **Añadir a pantalla de inicio**. Queda con icono y se abre a pantalla completa. En Android, Chrome ofrece «Instalar aplicación» o «Añadir a pantalla principal».
 
-Después de la primera visita con conexión, el simulador guarda sus archivos esenciales en el dispositivo. Por ello puede abrirse y utilizarse sin conexión. Cuando vuelva a haber red, el service worker busca una versión actualizada. Si se publica un cambio importante, se debe aumentar la versión `CACHE` de `sw.js` para que los dispositivos renueven su caché.
+Después de la primera visita con conexión, el simulador guarda sus archivos esenciales en el dispositivo, incluida la librería de acceso. Por ello puede abrirse y utilizarse sin conexión. Iniciar sesión la primera vez sigue necesitando red. Cuando vuelva a haber red, el service worker busca una versión actualizada. Si se publica un cambio importante, se debe aumentar la versión `CACHE` de `sw.js` para que los dispositivos renueven su caché.
 
-El historial de intentos y el examen en pausa se guardan en el navegador de cada dispositivo. En «Intentos anteriores» puedes **Descargar historial** (un archivo JSON, con el examen en pausa si hay uno) y, en el otro aparato, **Traer historial**. Los intentos que ya estaban no se duplican y se conservan los 20 más recientes. Cada intento tiene «Eliminar», y «Borrar todo el historial» vacía la lista; las dos acciones piden confirmación.
+Los intentos terminados se guardan en la cuenta y también en el navegador. En «Intentos anteriores» puedes **Descargar historial** (un archivo JSON, con el examen en pausa si hay uno) y, en el otro aparato, **Traer historial**. Los intentos que ya estaban no se duplican, se copian a la cuenta si hay conexión y se conservan los 20 más recientes. Si la copia a la cuenta falla, el aviso queda en la pantalla de inicio. Cada intento tiene «Eliminar», y «Borrar todo el historial» vacía la lista; las dos acciones piden confirmación.
 
 ## Cómo abrirlo en local
 
@@ -68,7 +68,8 @@ No requiere instalar dependencias. La comprobación valida:
 - índices de respuestas correctas y cantidad exigida al responder;
 - correspondencia de objetivos entre banco y sílabo;
 - disponibilidad de preguntas para cada entrada del plan;
-- estructura oficial del simulacro: **40 preguntas y 46 puntos**.
+- estructura oficial del simulacro: **40 preguntas y 46 puntos**;
+- 200 exámenes armados con la misma función de la aplicación, todos dentro de ese plan y sin enunciados repetidos.
 
 Si el comando falla, no publiques hasta corregir el mensaje indicado. Al añadir una pregunta, su identificador se calcula a partir de su contenido; añade también sus justificaciones en `porques.js` bajo ese identificador. Reordenar el banco ya no cambia la asociación de las justificaciones.
 

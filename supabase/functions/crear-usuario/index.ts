@@ -94,8 +94,8 @@ Deno.serve(async (request) => {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return respuesta({ error: "Indica un correo electrónico válido." }, 400);
   }
-  if (password.length < 6) {
-    return respuesta({ error: "La contraseña debe tener al menos 6 caracteres." }, 400);
+  if (password.length < 8) {
+    return respuesta({ error: "La contraseña debe tener al menos 8 caracteres." }, 400);
   }
 
   const { data: creado, error: errorCreacion } = await administrador.auth.admin.createUser({

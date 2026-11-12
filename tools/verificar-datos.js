@@ -20,13 +20,24 @@ function cargar(nombre, sandbox) {
   vm.runInContext(fs.readFileSync(archivo, "utf8"), sandbox, { filename: nombre });
 }
 
-const sandbox = { window: {} };
+const sandbox = {
+  console,
+  document: { addEventListener() {} },
+  localStorage: {
+    getItem() { return null; },
+    setItem() {},
+    removeItem() {}
+  }
+};
+sandbox.sessionStorage = sandbox.localStorage;
+sandbox.window = sandbox;
 vm.createContext(sandbox);
 
 try {
   cargar("banco.js", sandbox);
   cargar("porques.js", sandbox);
   cargar("silabo.js", sandbox);
+  cargar("app.js", sandbox);
 } catch (error) {
   console.error("No se pudieron cargar los datos:", error.message);
   process.exit(1);
@@ -63,6 +74,10 @@ banco.forEach((pregunta, indice) => {
   comprobar(
     Array.isArray(pregunta.porques) && pregunta.porques.length === pregunta.opciones.length,
     `${prefijo}: faltan justificaciones o no coinciden con las opciones.`
+  );
+  comprobar(
+    new Set(pregunta.porques).size === pregunta.porques.length,
+    `${prefijo}: hay justificaciones repetidas entre sus opciones.`
   );
 
   comprobar(
@@ -107,6 +122,71 @@ Object.keys(silabo.temas || {}).forEach((lo) => {
   comprobar(objetivosBanco.has(lo), `El objetivo ${lo} existe en el sílabo pero no tiene preguntas en el banco.`);
 });
 
+function contarFirmas(claves) {
+  const mapa = {};
+  claves.forEach((clave) => { mapa[clave] = (mapa[clave] || 0) + 1; });
+  return mapa;
+}
+
+const armarExamen = sandbox.CTGenAI && sandbox.CTGenAI.armarExamen;
+comprobar(typeof armarExamen === "function", "app.js no expone armarExamen.");
+
+const RONDAS = 200;
+let desviados = 0;
+let repetidos = 0;
+let incompletos = 0;
+if (typeof armarExamen === "function" && plan.length === 40) {
+  const firmaPlan = contarFirmas(plan.map((entrada) => entrada.join("|")));
+  for (let ronda = 0; ronda < RONDAS; ronda++) {
+    let examen;
+    try {
+      examen = armarExamen();
+    } catch (error) {
+      errores.push(`armarExamen falló en la simulación ${ronda + 1}: ${error.message}`);
+      break;
+    }
+    if (examen.length !== 40) incompletos++;
+    const firmaExamen = contarFirmas(examen.map((pregunta) => [pregunta.lo, pregunta.k, pregunta.puntos, pregunta.elegir].join("|")));
+    const claves = new Set([...Object.keys(firmaPlan), ...Object.keys(firmaExamen)]);
+    let distinto = false;
+    claves.forEach((clave) => {
+      if (firmaPlan[clave] !== firmaExamen[clave]) distinto = true;
+    });
+    if (distinto) desviados++;
+    if (new Set(examen.map((pregunta) => pregunta.enunciado)).size !== examen.length) repetidos++;
+  }
+  comprobar(incompletos === 0, `${incompletos} exámenes simulados no tienen 40 preguntas.`);
+  comprobar(desviados === 0, `${desviados} de ${RONDAS} exámenes simulados no respetan el nivel K, los puntos o el número de opciones del plan.`);
+  comprobar(repetidos === 0, `${repetidos} exámenes simulados repiten un enunciado.`);
+}
+
+const fusionarHistoriales = sandbox.CTGenAI && sandbox.CTGenAI.fusionarHistoriales;
+if (typeof fusionarHistoriales === "function") {
+  function intentoDePrueba(fecha, puntos, remoto) {
+    const intento = {
+      fecha,
+      modo: "real",
+      puntos,
+      incompleto: false,
+      porTiempo: false,
+      minutos: 60,
+      preguntas: [{ lo: "1.1.1" }],
+      respuestas: [[0]]
+    };
+    if (remoto) intento._remotoId = remoto;
+    return intento;
+  }
+  const soloLocal = intentoDePrueba("2/1/2026, 10:00:00", 31);
+  const remotoDistinto = intentoDePrueba("3/1/2026, 10:00:00", 40, "remoto-1");
+  const fusionConserva = fusionarHistoriales([soloLocal], [remotoDistinto]);
+  comprobar(fusionConserva.length === 2, "La fusión del historial no debe descartar un intento que solo está en el navegador.");
+
+  const localSinId = intentoDePrueba("4/1/2026, 10:00:00", 28);
+  const remotoMismo = intentoDePrueba("4/1/2026, 10:00:00", 28, "remoto-2");
+  const fusionId = fusionarHistoriales([localSinId], [remotoMismo]);
+  comprobar(fusionId.length === 1 && fusionId[0]._remotoId === "remoto-2", "Si el mismo intento ya está en la cuenta, la fusión debe conservar su identificador remoto.");
+}
+
 if (errores.length) {
   console.error(`Validación fallida: ${errores.length} error(es).`);
   errores.forEach((error) => console.error(`- ${error}`));
@@ -114,5 +194,5 @@ if (errores.length) {
 }
 
 console.log(
-  `Validación correcta: ${banco.length} preguntas, ${ids.size} IDs únicos, ${objetivosBanco.size} objetivos y PLAN de ${plan.length} preguntas / ${puntosPlan} puntos.`
+  `Validación correcta: ${banco.length} preguntas, ${ids.size} IDs únicos, ${objetivosBanco.size} objetivos, PLAN de ${plan.length} preguntas / ${puntosPlan} puntos y ${RONDAS} exámenes simulados dentro del plan.`
 );
